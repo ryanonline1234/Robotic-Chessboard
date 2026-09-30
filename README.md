@@ -1,94 +1,88 @@
-# Chessboard Arranger
+# Robotic Chessboard
 
-The planning brain for a self-moving magnet chessboard. Tell it where every
-piece is now and where the pieces should end up, and it returns the exact list
-of drags for the magnet under the board: which piece, from where, to where,
-along which route, and why.
+A chessboard that moves its own pieces. An electromagnet on an XY gantry
+slides under the board, grabs a piece through the wood, and drags it to its
+square, weaving between the other pieces without touching them. It can play
+the computer's moves, reset the board after a game, and set up any position.
 
-It handles every job a robotic board needs: resetting after a game (captured
-pieces come back from storage), setting up a position, playing a move, or
-tidying a board where pieces were dropped anywhere. Every plan is replayed by
-an independent checker that confirms no piece ever touches another and that
-the board ends up exactly right.
+The hard part of a board like this is the brain: deciding which piece goes
+where, in what order, and along which route, so nothing collides. That part
+is written and tested. This repo also holds the hardware design, CAD and
+parts list for the first physical build.
 
-Plain JavaScript, no dependencies, Node 20 or newer.
+![Simulator: a full-size pawn steps aside so the knight can get out, then goes back](docs/img/simulator.png)
 
-**Building the physical board?** [ROADMAP.md](ROADMAP.md) walks through it
-step by step, from a $30 magnet test to playing online.
+## Status
 
-## Try it
+| Part | State |
+|---|---|
+| Planning software: assignment, collision-free routing, blocker handling | ✅ Done, 20 tests |
+| Independent plan checker | ✅ Done |
+| G-code output for a GRBL gantry | ✅ Done |
+| Animated simulator and command-line demo | ✅ Done |
+| Hardware design, wiring, firmware settings | ✅ [docs/DESIGN.md](docs/DESIGN.md) |
+| Parts list, about $99 | ✅ [docs/BOM.md](docs/BOM.md) |
+| CAD: printable board sheet, layout drawing, parametric pieces | ✅ [cad/](cad) |
+| Gantry and carriage parts in CAD | Next |
+| Physical build | Next: [ROADMAP.md](ROADMAP.md) milestones 1–3 |
+
+## What makes it different
+
+- **It plans like a person tidying a board.** Identical pieces are
+  interchangeable, so it matches each square with the nearest suitable piece,
+  handles pieces that have to swap places, and routes every drag around the
+  others with A* search. If a piece is boxed in, it moves the blocker aside and
+  puts it back afterwards.
+- **It checks its own work.** Every plan is replayed by a separate checker
+  with brute-force geometry before a motor turns.
+- **It was designed around a measurement, not a guess.** Simulating
+  thousands of boards showed that pieces up to half a square wide never block
+  each other. With 19 mm bases on 40 mm squares, every piece moves exactly
+  once; full-size pieces need up to 2.5 times as many moves.
+- **It explains itself.** Every move comes with a reason ("out of the way of
+  the white knight") that can be shown on screen.
+
+![The six 3D-printable piece designs](docs/img/pieces.png)
+
+## Try the software
+
+Needs Node 20 or newer; no dependencies.
 
 ```bash
 node demo.js                 # list the sample jobs
 node demo.js reset           # put everything back after a game
-node demo.js nf3 --big       # full-size pieces: watch it move a blocker and put it back
-node demo.js scramble --seed 7
-node demo.js swap --gcode plan.gcode   # also write G-code for the gantry
-npm test                     # unit tests, random boards, Chess960 setups
+node demo.js nf3 --big       # full-size pieces: it moves a blocker and puts it back
+node demo.js reset --storage 1 --square 40 --size 0.475 --gcode reset.gcode   # G-code for the v1 board
+npm test
 ```
 
-To watch it animated, serve this folder and open the simulator:
+To watch it animated, run `npm run sim` and open
+http://localhost:8000/simulator.html.
 
-```bash
-npm run sim                  # then open http://localhost:8000/simulator.html
-```
+## How the planner thinks
 
-## How it thinks
-
-1. **Assign.** Identical pieces are interchangeable, so each target square is
-   matched with a piece of the right type to keep the total distance as small
-   as possible (Hungarian algorithm, one run per piece type). Pieces left over
-   go to storage.
-2. **Order.** It keeps running whichever move has a free destination, nearest
-   to the magnet first. When every destination is still taken (two pieces that
-   must trade places), one of them steps onto a spare square first.
-3. **Route.** Each drag is routed around the other pieces with A* search on a
-   half-square grid (centers, edges and corners of squares). A route is only
-   allowed if the dragged piece stays one full piece width away from every
+1. **Assign.** Each target square is matched with a piece of the right type so
+   the total distance is as small as possible (Hungarian algorithm, one run per
+   piece type). Pieces left over go to storage.
+2. **Order.** It runs whichever move has a free destination, nearest to the
+   magnet first. When every destination is taken (pieces that must trade
+   places), one of them steps onto a spare square first.
+3. **Route.** Each drag is found with A* search on a half-square grid, and is
+   only allowed if the dragged piece stays one full piece width from every
    other piece the whole way.
 4. **Clear the way.** If a piece is boxed in, a second search finds the route
-   that disturbs the fewest pieces. Those pieces step aside to spots they can
-   get back from, then return. With full-size pieces it also fills the board
-   from the inside out (back rank before pawns) and fills storage from the
-   outer column in, so it doesn't wall itself in.
-5. **Check.** `verify.js` replays the plan with brute-force geometry, so the
-   planner never grades its own homework.
+   that disturbs the fewest pieces. They step aside to spots they can get back
+   from, then return. With full-size pieces it fills the board from the inside
+   out and fills storage from the outer column in.
+5. **Check.** `src/verify.js` replays the plan independently.
 
-This is a search-based planner, not a trained neural network, on purpose. It
-has to be right every time (one bad drag knocks pieces over), it needs no
-training data, it plans in milliseconds on a Raspberry Pi-class computer, and
-every move comes with a reason you can show on screen.
-
-## Piece size matters
-
-Pieces are modeled as discs `pieceDiameter` square widths across. Up to half a
-square, a piece always fits along the lines between other pieces, so each
-piece moves once. Wider pieces get boxed in and the planner has to move
-blockers:
-
-| Job | Slim pieces (0.45) | Full-size pieces (0.8) |
+| Job | Slim pieces (0.45 of a square) | Full-size pieces (0.8) |
 |---|---|---|
 | Reset after a game | 22 moves | 26 moves (4 temporary) |
 | Set up a study | 32 | 32 |
 | Play 1. Nf3 | 1 | 3 (1 temporary) |
 | Swap the colours | 48 (16 temporary) | 53 (20 temporary) |
-| Tidy a scrambled board | 33 (1 temporary) | 36 (3 temporary) |
 | Chess960 setup, average of all 960 | 15.6 (3.6 temporary) | 38.3 (17.1 temporary) |
-
-**Hardware tip:** choose pieces whose base is at most half a square wide (for
-example 24 mm bases on 50 mm squares). The robot gets faster and simpler.
-
-## The board model
-
-```
-L2 L1 | a b c d e f g h | R1 R2     8 ranks tall
-```
-
-Two storage columns on each side hold 32 pieces, enough for a full set. Play
-squares use normal names (`e4`); storage slots are named by side, column
-counted outward, and rank (`L1-3`, `R2-8`). Positions are in square widths
-with square centers on whole numbers, x from the left storage edge and y from
-rank 1.
 
 ## Using it from code
 
@@ -97,40 +91,36 @@ import { START_FEN, createBoard } from './src/board.js';
 import { planArrangement } from './src/planner.js';
 import { toGcode } from './src/gcode.js';
 
-const board = createBoard();
+const board = createBoard({ storageColumns: 1 });
 const now = { e4: 'P', d5: 'p', 'R1-1': 'Q' /* ...every piece, storage included */ };
-const plan = planArrangement(board, now, START_FEN, { pieceDiameter: 0.45 });
+const plan = planArrangement(board, now, START_FEN, { pieceDiameter: 0.475 });
 
-for (const move of plan.moves) {
-  console.log(move.piece, move.from, move.to, move.kind, move.why, move.path);
-}
-const gcode = toGcode(plan.moves, { squareMm: 50 });
+for (const move of plan.moves) console.log(move.piece, move.from, move.to, move.why);
+const gcode = toGcode(plan.moves, { squareMm: 40 });
 ```
 
 Inputs can be a FEN string, a `Map` of cell to piece, or an object keyed by
-cell name. The target only describes the 64 play squares; anything not needed
-there ends up in storage. If the target needs pieces that don't exist (a
-second queen), you get `{ ok: false, error }` instead of a plan.
+cell name (`e4`, or `L1-3` / `R1-8` for storage slots). The target describes
+the 64 play squares; anything not needed there ends up in storage. If a job is
+impossible (a second queen that doesn't exist, or more captured pieces than
+storage slots), you get `{ ok: false, error }` instead of a plan.
 
-`toGcode` writes plain GRBL G-code: a rapid move with the magnet off to get
-under a piece, then feed moves with it on. The magnet defaults to `M8`/`M9`
-(the coolant pin on a GRBL CNC shield, easy to wire to a relay or MOSFET).
+## Repo map
 
-## Files
-
-| File | What it does |
+| Path | What it is |
 |---|---|
-| `src/board.js` | Board layout, cell names, FEN, captured pieces into storage |
-| `src/hungarian.js` | Minimum-cost assignment |
-| `src/motion.js` | Collision geometry, A* routing, path smoothing |
-| `src/planner.js` | The planner: assign, order, route, clear the way |
-| `src/verify.js` | Independent replay checker |
-| `src/gcode.js` | Plan to G-code |
-| `src/scenarios.js` | Sample jobs shared by the demo, simulator and tests |
+| `src/` | Planner, routing, checker, G-code, sample jobs |
+| `tests/` | `node --test` suites: sample jobs, random boards, Chess960 setups |
 | `demo.js` | Command-line demo |
 | `simulator.html` | Animated top-down simulator |
-| `tests/` | `node --test` suites |
-| `ROADMAP.md` | Step-by-step plan for the physical board |
+| `docs/DESIGN.md` | Hardware design, wiring, firmware settings, test plan |
+| `docs/BOM.md` | Parts list and budget |
+| `cad/board-sheet.svg` | 1:1 printable playing surface (400 × 320 mm) |
+| `cad/board-layout.svg` | Same, with dimensions and the magnet's travel area |
+| `cad/make-board.js` | Regenerates both drawings for any square size |
+| `cad/pieces.scad` | Parametric OpenSCAD pieces with a washer pocket |
+| `ROADMAP.md` | Milestones from a magnet test to online play |
+| `JOURNAL.md` | Build log |
 
 ## License
 

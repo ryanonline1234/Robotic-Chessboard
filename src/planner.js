@@ -136,6 +136,10 @@ export function planArrangement(board, from, to, options = {}) {
       }
     });
   }
+  const leftOver = current.size - target.size;
+  if (leftOver > storage.length) {
+    return failure(`${plural(leftOver, 'piece')} would need storage, but it only has ${storage.length} slots`);
+  }
 
   const occupiedWithout = (w, id) => {
     const occupied = new Uint8Array(board.cellCount);

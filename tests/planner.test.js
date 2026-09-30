@@ -111,6 +111,21 @@ test('asking for pieces that do not exist fails politely', () => {
   assert.throws(() => planArrangement(board, START_FEN, { 'L1-1': 'K' }), /Targets must be squares/);
 });
 
+test('a compact board with one storage column per side', () => {
+  const compact = createBoard({ storageColumns: 1 });
+  const { from, to } = scenario(compact, 'reset');
+  const plan = planArrangement(compact, from, to, { pieceDiameter: 0.475 });
+  assert.ok(plan.ok, plan.error);
+  assert.ok(checkPlan(compact, from, to, plan.moves, { pieceDiameter: 0.475 }).ok);
+
+  // Clearing the board down to four pieces needs 28 slots; there are 16.
+  const study = scenario(compact, 'study');
+  const refused = planArrangement(compact, study.from, study.to);
+  assert.equal(refused.ok, false);
+  assert.match(refused.error, /28 pieces would need storage, but it only has 16 slots/);
+  assert.equal(refused.moves.length, 0);
+});
+
 test('G-code switches the magnet once per move', () => {
   const { from, to } = scenario(board, 'nf3');
   const plan = planAndCheck(from, to, FULL_SIZE);
@@ -119,4 +134,5 @@ test('G-code switches the magnet once per move', () => {
   assert.equal(gcode.match(/^M9$/gm).length, plan.moves.length + 1);
   // Move 1 starts under g2: column 2 + 6 = 8, row 1, so (8.5 * 40, 1.5 * 40).
   assert.match(gcode, /^G0 X340\.0 Y60\.0$/m);
+  assert.match(toGcode(plan.moves, { squareMm: 40, offsetX: 12, offsetY: -3 }), /^G0 X352\.0 Y57\.0$/m);
 });

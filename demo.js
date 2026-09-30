@@ -6,6 +6,7 @@
  *   node demo.js nf3 --big          full-size pieces: watch it move blockers
  *   node demo.js scramble --seed 42
  *   node demo.js swap --gcode plan.gcode
+ *   node demo.js reset --storage 1 --square 40 --gcode reset.gcode   (compact build)
  */
 import { writeFileSync } from 'node:fs';
 import process from 'node:process';
@@ -24,12 +25,12 @@ const option = (name, fallback) => {
 const id = args.find((arg, i) => !arg.startsWith('--') && !args[i - 1]?.startsWith('--'));
 
 if (!id) {
-  console.log('Usage: node demo.js <job> [--big | --size 0.6] [--seed N] [--gcode file]\n');
+  console.log('Usage: node demo.js <job> [--big | --size 0.6] [--seed N] [--storage 1|2] [--square mm] [--gcode file]\n');
   for (const s of SCENARIOS) console.log(`  ${s.id.padEnd(9)} ${s.title}: ${s.description}`);
   process.exit(0);
 }
 
-const board = createBoard();
+const board = createBoard({ storageColumns: Number(option('--storage', 2)) });
 const pieceDiameter = args.includes('--big') ? 0.8 : Number(option('--size', 0.45));
 const { from, to } = scenario(board, id, Number(option('--seed', 1)));
 
@@ -48,7 +49,7 @@ function draw(arrangement) {
   return lines.join('\n');
 }
 
-console.log(`Pieces ${pieceDiameter} of a square wide. Storage on both sides.\n`);
+console.log(`Pieces ${pieceDiameter} of a square wide. ${board.storageColumns} storage column(s) on each side.\n`);
 console.log(`${draw(from)}\n`);
 
 const plan = planArrangement(board, from, to, { pieceDiameter });
@@ -78,7 +79,7 @@ console.log(check.ok ? 'Checked: no piece ever touches another, and the board ma
 
 const gcodeFile = option('--gcode');
 if (gcodeFile) {
-  writeFileSync(gcodeFile, toGcode(plan.moves));
+  writeFileSync(gcodeFile, toGcode(plan.moves, { squareMm: Number(option('--square', 50)) }));
   console.log(`G-code written to ${gcodeFile}`);
 }
 process.exit(check.ok ? 0 : 1);

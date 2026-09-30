@@ -17,8 +17,8 @@ shipping, which can take one to three weeks for parts ordered online.
           chess pieces (steel washer + felt pad in each base)
   ═══════════════════════════════════════════════════  3 mm board top
                     ┌───────────┐
-                    │ electro-  │  rides on the XY carriage,
-                    │ magnet    │  about 1 mm under the board top
+                    │ electro-  │  rides on the XY carriage, pressed
+                    │ magnet    │  lightly against the underside of the top
   ──────────────────┴───────────┴──────────────────  X beam
   Y rails on both sides, two stepper motors and belts
 
@@ -34,13 +34,16 @@ releases pieces.
 
 | Decision | Recommendation | Why |
 |---|---|---|
-| Square size | 50 mm | Stable pieces, and the full grid with storage is 600 × 400 mm. For a smaller build, 40 mm squares with 20 mm bases also work. |
-| Storage | Two columns on each side (the planner's default) | Holds a full 32-piece set. One column per side (`createBoard({ storageColumns: 1 })`) makes the board 100 mm narrower but can run out of room in long games. |
-| Pieces | 3D-printed, bases at most 24 mm wide | At up to half a square wide, pieces slide between the others, so each piece moves once (see the table in the README). |
+| Square size | 40 mm | Keeps the whole grid at 400 × 320 mm, so short rods and a $100 budget cover it. 50 mm squares are a later upgrade. |
+| Storage | One column on each side, 16 slots (`createBoard({ storageColumns: 1 })`) | Enough for the captures in almost every game. The planner refuses a job that needs more room than exists. |
+| Pieces | 3D-printed, 19 mm bases ([cad/pieces.scad](cad/pieces.scad)) | At up to half a square wide, pieces slide between the others, so each piece moves once (see the table in the README). |
 | What the magnet grabs | An electromagnet on the carriage and a steel washer in each piece, with no magnets in the pieces | A piece with a magnet in it sticks to the electromagnet's iron core even when the power is off, and gets dragged around. |
-| Gantry | A simple XY frame with one motor per axis, or a reused two-axis laser engraver frame that covers 600 × 400 mm | One motor per axis is the easiest to build and debug. CoreXY is lighter but trickier to get right. |
-| Controller | Arduino Uno + CNC Shield V3 running GRBL 1.1, with TMC2209 drivers | Cheap, well documented, and runs the G-code this repo writes. TMC2209 drivers are nearly silent. |
+| Gantry | A simple XY frame on 8 mm rods and LM8UU bearings, one motor per axis | Cheap and easy to build and debug. An aluminium extrusion frame is stiffer and a good later upgrade. |
+| Controller | Arduino Uno + CNC Shield V3 running GRBL 1.1, A4988 drivers | Cheap, well documented, and runs the G-code this repo writes. TMC2209 drivers are quieter if the budget allows. |
 | Knowing where pieces are | Version 1: no sensors. Version 2: sensors under the squares. | The software can track every move it makes itself. Sensors are a big job, so add them once everything else works. |
+
+The full design is in [docs/DESIGN.md](docs/DESIGN.md) and the parts in
+[docs/BOM.md](docs/BOM.md).
 
 ## Milestone 0: planner and simulator ✅
 
@@ -57,39 +60,40 @@ Done in this repo:
 The riskiest question is whether a magnet under the board can drag a piece
 smoothly. Answer it before building anything else.
 
-- [ ] Buy a 12 V electromagnet (20–25 mm across, rated for 2–3 kg of holding force), a logic-level MOSFET module, a flyback diode (1N5819 or 1N4007), a 12 V power supply, steel washers 18–20 mm across, felt pads, and a 3 mm sample of your board material (acrylic, MDF or plywood).
+- [ ] Buy a 12 V electromagnet (20–25 mm across, rated for 2–3 kg of holding force), a logic-level MOSFET module, a flyback diode (1N5819 or 1N4007), a 12 V power supply, M8 steel washers (16 mm across), felt pads, and a 3 mm sample of your board material (acrylic, MDF or plywood).
 - [ ] Wire the magnet through the MOSFET, with the diode across the magnet's terminals and its stripe toward +12 V. Without the diode, switching the coil off can destroy the MOSFET.
 - [ ] 3D-print three test pieces: a pawn, a knight and a king (the tallest). Leave a pocket in each base for a washer, and glue a felt pad on the bottom.
 - [ ] Hold the magnet under the board sample, by hand or on a block, and drag each piece around. Try gaps from 1 to 5 mm and different speeds.
 
-**Done when:** the king follows the magnet across 25 cm ten times in a row
+**Done when:** the king follows the magnet across 20 cm ten times in a row
 without tipping or getting left behind, and stays put when the magnet is off.
 
 **If it fails:** use a thinner board top, a bigger washer, a stronger magnet or
 a heavier, wider base; drag more slowly; keep the top smooth and the pieces on
 felt.
 
-## Milestone 2: the gantry moves accurately (2–3 weekends, about $100–150)
+## Milestone 2: the gantry moves accurately (2–3 weekends, about $70)
 
-- [ ] Build the frame. 2020 aluminium extrusion with V-slot wheels is the usual choice. The carriage has to reach every square center: a 550 × 350 mm range for 50 mm squares.
+- [ ] Design and print the rod holders, carriages and motor mounts listed in [docs/DESIGN.md](docs/DESIGN.md).
+- [ ] Build the frame: 8 mm rods on a plywood base with LM8UU bearings. The carriage has to reach every cell center: a 360 × 280 mm range for 40 mm squares.
 - [ ] Mount two NEMA 17 stepper motors with GT2 belts and 20-tooth pulleys, plus a limit switch on each axis for homing.
 - [ ] Flash GRBL 1.1 onto the Arduino and set it up:
   - steps per mm, `$100` and `$101`: 80 for GT2 belts on 20-tooth pulleys at 1/16 microstepping, or 40 at 1/8 (check your driver's jumpers)
   - maximum speed, `$110` and `$111`, and acceleration, `$120` and `$121`
   - homing, `$22=1`
 - [ ] Drive it by hand from a free G-code sender such as Universal Gcode Sender, CNCjs or LaserGRBL.
-- [ ] Accuracy test: tape paper over the frame, clip a pen to the carriage, and visit all 96 square centers.
+- [ ] Accuracy test: tape paper over the frame, clip a pen to the carriage, and visit all 80 cell centers.
 
 **Done when:** after homing, the pen hits every square center within ±1 mm,
 three runs in a row.
 
 ## Milestone 3: first automated moves (1–2 weekends)
 
-- [ ] Mount the electromagnet on the carriage, with shims so its top sits about 1 mm below the board top.
+- [ ] Mount the electromagnet on the carriage on a light spring, with PTFE tape on its face, so it presses gently against the underside of the board top.
 - [ ] Connect the MOSFET input to the CNC Shield's coolant pin (`CoolEn`, Arduino pin A3). `M8` then turns the magnet on and `M9` turns it off, which is what `toGcode` writes.
-- [ ] Fix the board top on standoffs so it can't sag (sag changes the gap), and cover it with a printed 12 × 8 grid: the chessboard plus the storage slots.
-- [ ] Software: add calibration to `src/gcode.js`, with an origin offset and a measured square size for each axis. Measure them by jogging the magnet to the centers of a1 and h8.
-- [ ] Set up the pieces the way `node demo.js reset` prints its starting board, write the G-code with `node demo.js reset --gcode reset.gcode`, and run it from the sender.
+- [ ] Fix the board top on a frame around the edges, and glue on the printed sheet from [cad/board-sheet.svg](cad/board-sheet.svg) (print at 100% scale).
+- [ ] Calibrate: jog the magnet to the centers of a1 and h8 to find the board's offset in machine coordinates, and pass it to `toGcode` as `offsetX` and `offsetY`.
+- [ ] Set up the pieces the way `node demo.js reset --storage 1` prints its starting board, write the G-code with `node demo.js reset --storage 1 --square 40 --size 0.475 --gcode reset.gcode`, and run it from the sender.
 - [ ] Tune the drag speed (start at 1000 mm/min), the acceleration, and the pause after switching the magnet.
 
 **Done when:** the 22-move reset job runs three times in a row with every
@@ -129,28 +133,12 @@ the board notices when you knock a piece off its square.
 - [ ] Run a reliability soak: random jobs from `src/scenarios.js` overnight, counting misplaced pieces.
 - [ ] Planner: a look-ahead search to cut temporary moves when pieces are full size.
 
-## Parts and rough budget
+## Parts and budget
 
-Prices are rough online prices in US dollars; shop around.
-
-| Part | Rough price |
-|---|---|
-| Arduino Uno (clone) + CNC Shield V3 | $15–25 |
-| 2 × TMC2209 stepper drivers (A4988s are cheaper but louder) | $10–20 |
-| 2 × NEMA 17 stepper motors | $20–30 |
-| GT2 belt, 20-tooth pulleys, idlers | $10–15 |
-| 2020 V-slot extrusion, wheels, brackets, screws | $50–90 |
-| 2 limit switches | $3–5 |
-| 12 V electromagnet, 20–25 mm | $6–12 |
-| Logic-level MOSFET module + flyback diode | $3–6 |
-| 12 V 5 A power supply + inline fuse | $12–20 |
-| 3 mm board top + printed board sheet | $15–30 |
-| Pieces: filament, 34 steel washers, felt pads | $15–25 |
-| **Total** | **about $160–280** |
-
-Milestone 5 adds roughly $20–40 for sensors, shift registers and wiring. An
-old 3D printer or laser engraver can supply the motors, belts, rails and
-controller for less.
+The funded v1 build comes to about $99; the itemised list is in
+[docs/BOM.md](docs/BOM.md). Milestone 5 adds roughly $20–40 for sensors, shift
+registers and wiring. Quieter TMC2209 drivers and an aluminium extrusion frame
+are good upgrades once v1 works.
 
 ## Risks to watch
 
@@ -159,7 +147,7 @@ controller for less.
 | Magnet too weak through the board | Drags stutter in Milestone 1 | Thinner top, bigger washer, stronger magnet, slower drags |
 | Pieces follow the magnet when it's off | Pieces creep during travel moves | No magnets in pieces, or lift the magnet away (Milestone 5) |
 | Tall pieces tip over | The king wobbles when a drag starts | Lower acceleration, a heavier or wider base, felt pads |
-| Board top sags | Drags work at the edges but not in the middle | Support the top from underneath and check the gap in several places |
+| Board top sags | Drags work at the edges but not in the middle | The spring-loaded magnet follows the top; otherwise use a stiffer top |
 | Squares drift out of line | Pieces land off-center on one side | Square up the frame, then redo homing and calibration |
 | Too noisy | Reviews of commercial robotic boards complain about this | TMC2209 drivers, rubber mounts, slower moves |
 | Magnet overheats | Too hot to touch after a long job | It's only on while dragging; use PWM to lower its power |
