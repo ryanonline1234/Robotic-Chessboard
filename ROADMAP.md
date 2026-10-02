@@ -14,7 +14,7 @@ shipping, which can take one to three weeks for parts ordered online.
 ## How the board works
 
 ```
-          chess pieces (steel washer + felt pad in each base)
+          chess pieces (steel washer in each base, felt pad optional)
   ═══════════════════════════════════════════════════  3 mm board top
                     ┌───────────┐
                     │ electro-  │  rides on the XY carriage, pressed
@@ -60,11 +60,11 @@ Done in this repo:
 The riskiest question is whether a magnet under the board can drag a piece
 smoothly. Answer it before building anything else.
 
-- [ ] Buy a 12 V electromagnet (20–25 mm across, rated for 2–3 kg of holding force), a logic-level MOSFET module, a flyback diode (1N5819 or 1N4007), a 12 V power supply, M8 steel washers (16 mm across), felt pads, and a 3 mm sample of your board material (acrylic, MDF or plywood).
+- [ ] Buy a 12 V electromagnet (20–25 mm across, rated for 2–3 kg of holding force), a logic-level MOSFET module, a flyback diode (1N5819 or 1N4007), a 12 V power supply, M8 steel washers (16 mm across), and a 3 mm sample of your board material (acrylic, MDF or plywood). A few felt pads are optional, to compare.
 - [ ] Wire the magnet through the MOSFET, with the diode across the magnet's terminals and its stripe toward +12 V. Without the diode, switching the coil off can destroy the MOSFET.
-- [ ] 3D-print three test pieces: a pawn, a knight and a king (the tallest). Leave a pocket in each base for a washer, and glue a felt pad on the bottom.
+- [ ] 3D-print three test pieces: a pawn, a knight and a king (the tallest), from [cad/pieces.scad](cad/pieces.scad). Glue a washer into each base and check with a straight edge that it sits flush with the base or just below it. Test them bare first (the funded build has no felt), then with a felt pad on the bottom if you have some.
 - [ ] Hold the magnet under the board sample, by hand or on a block, and drag each piece around. Try gaps from 1 to 5 mm and different speeds.
-- [ ] Measure what [docs/CALCULATIONS.md](docs/CALCULATIONS.md#what-milestone-1-should-measure) lists: felt friction, the magnet's downward and sideways pull, whether a passing magnet drags a standing pawn, and how hot the magnet gets.
+- [ ] Measure what [docs/CALCULATIONS.md](docs/CALCULATIONS.md#what-milestone-1-should-measure) lists: the pieces' friction on the board sheet, the magnet's downward and sideways pull, whether a passing magnet drags a standing pawn, and how hot the magnet gets.
 
 **Done when:** the king follows the magnet across 20 cm ten times in a row
 without tipping or getting left behind, and stays put when the magnet is off.
@@ -139,10 +139,12 @@ the board notices when you knock a piece off its square.
 
 ## Parts and budget
 
-The v1 build comes to $116.38 with tax and shipping, every price checked on
-2026-10-01. That is $16.38 over the $100 funding tier; the itemised list, and
-the changes that would bring it under $100, are in
-[docs/BOM.md](docs/BOM.md). Milestone 5 adds roughly $20–40 for sensors, shift
+The funded v1 build comes to $98.36 with tax and shipping, every price
+checked on 2026-10-01; the itemised list is in [docs/BOM.md](docs/BOM.md).
+Four parts were cut or downgraded to fit the $100 tier (separate 3 mm idlers,
+felt pads, a 5 A adapter and a second 45 N·cm motor). They are listed there
+as add-backs to buy at build time, with spares for the riskiest parts; the
+design works with or without them. Milestone 5 adds roughly $20–40 for sensors, shift
 registers and wiring. Quieter TMC2209 drivers and an aluminium extrusion frame
 are good upgrades once v1 works.
 

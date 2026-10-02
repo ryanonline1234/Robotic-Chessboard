@@ -35,11 +35,8 @@ const G = 9.81; // m/s^2
 
 // ---------------------------------------------------------------- inputs
 
-// The motor figures tagged "17HS4401 listing" come from one listing [source]. The BOM
-// only asks for "NEMA 17, 40 N*cm or more, 1.5 A": that the motor bought is a
-// 17HS4401 is an [assumption].
 const MOTION = {
-  fullStepsPerRev: 200, // [source] 1.8 degree motor (17HS4401 listing)
+  fullStepsPerRev: 200, // [source] 1.8 degree motors (both motor listings)
   beltPitch: 2, // mm [design] GT2
   pulleyTeeth: 20, // [design]
   microsteps: 16, // [design] A4988 with all three jumpers in
@@ -51,15 +48,54 @@ const MOTION = {
   settleSeconds: 0.2, // s [design] default in src/gcode.js
 };
 
-const MOTOR = {
-  ratedCurrent: 1.5, // A [design] BOM rows 2-3
-  holdingTorque: 40, // N*cm [design] the floor; BOM rows 2-3 buy 45 N*cm
+// The funded build has two different motors. Y moves the whole gantry, the X motor
+// included, so it gets the stronger one. A second 17HS15-1504S-X1 for X is an optional
+// add-back (docs/BOM.md). The 17HS4401 figures come from one seller's listing.
+const MOTORS = {
+  X: {
+    model: '17HS4401',
+    holdingTorque: 40, // N*cm [source] 17HS4401 listing
+    phaseResistance: 1.5, // ohm [source] 17HS4401 listing
+    phaseInductance: 2.8e-3, // H [source] 17HS4401 listing
+    rotorInertia: 54e-7, // kg*m^2 (54 g*cm^2) [source] 17HS4401 listing
+    // V [source] the same listing's "rated voltage". At its 1.5 A that means 2.4 ohm, not the
+    // 1.5 ohm it also gives, so the listing disagrees with itself (section 11 works both).
+    ratedVoltage: 3.6,
+  },
+  Y: {
+    model: '17HS15-1504S-X1',
+    holdingTorque: 45, // N*cm [source] StepperOnline product page; Amazon listing B07LF898KN
+    phaseResistance: 2.3, // ohm [source] same pages
+    phaseInductance: 4.4e-3, // H [source] same pages: 4.4 mH +/-20% (1 kHz)
+    inductanceTolerance: 0.2, // [source] same pages
+    rotorInertia: 54e-7, // kg*m^2 [assumption] not found for this motor; the 17HS4401's figure
+  },
+};
+
+const DRIVE = {
+  ratedCurrent: 1.5, // A [source] both motor listings
   currentFraction: 0.7, // [design] Vref at about 70% of rating (docs/DESIGN.md)
-  phaseResistance: 1.5, // ohm [source] 17HS4401 listing
-  phaseInductance: 2.8e-3, // H [source] 17HS4401 listing
-  rotorInertia: 54e-7, // kg*m^2 (54 g*cm^2) [source] 17HS4401 listing
   torqueDerate: 0.5, // [assumption] usable fraction of the microstepping torque at speed (section 3)
   supplyVolts: 12, // [design]
+  supplyRating: 3, // A [design] the funded build's 12 V 3 A adapter (5 A is an optional add-back)
+  fuse: 5, // A [design]
+  // ohm [source] A4988 datasheet, output on-resistance of each source or sink FET at 1.5 A,
+  // TA = 25 C: 0.32 typical, 0.43 maximum. The coil current always flows through two of them.
+  rdsOnMax: 0.43,
+  rdsOnTypical: 0.32,
+  senseResistor: 0.1, // ohm [design] R100 boards; R068 boards (0.068 ohm) lose less
+  quiescent: 0.004, // A [source] A4988 datasheet: motor supply current IBB at most 4 mA (fPWM < 50 kHz)
+  drivers: 2, // [design] X and Y
+};
+
+// Pull-out torque of the 17HS15-1504S-X1 [source]: StepperOnline's published curve at 24 V,
+// 1.5 A and 2000 microsteps per turn (the driver is not named). [kpps, N*cm], read from the
+// plotted markers; at 2000 microsteps per turn, rpm = kpps x 30.
+const Y_CURVE = {
+  volts: 24,
+  amps: 1.5,
+  microstepsPerRev: 2000,
+  points: [[1, 42], [3, 43], [7, 43], [10, 40], [13, 35], [17, 30], [20, 25], [23, 22], [27, 18], [33, 14], [40, 10]],
 };
 
 const MASS = {
@@ -73,7 +109,7 @@ const MASS = {
   carriagePrinted: 40, // g [assumption]
   magnet: 25, // g [assumption] Adafruit's 5 V P20/15 is 22.7 g
   carriageHardware: 15, // g [assumption] spring, screws, belt clamps, belt ends
-  xMotor: 350, // g [assumption] 40 mm NEMA 17 bodies are often listed near 280 g; allows a longer motor
+  xMotor: 350, // g [assumption] 40 mm NEMA 17 bodies are often listed near 280 g; allows a heavier one
   gantryPrinted: 80, // g [assumption] end blocks, X motor and idler mounts
   gantryHardware: 20, // g [assumption] pulley, idler, screws
   resistance: 5, // N per axis [assumption] binding, belt bending, the magnet's PTFE face sliding on the top
@@ -87,13 +123,24 @@ const PIECE = {
   washerInner: 8.4, // mm [design]
   washerThickness: 1.6, // mm [design]
   pocketDepth: 1.8, // mm [design] cad/pieces.scad
+  pocketDiameter: 16.4, // mm [design] cad/pieces.scad; the pocket is open at the bottom of the base
   // mm [assumption] how far the washer's face sits up inside the pocket: 0.2 if it is
   // glued against the pocket ceiling (1.8 mm pocket, 1.6 mm washer); less if glue sits there
   washerRecess: 0.2,
+  baseDiameter: 19, // mm [design] cad/pieces.scad; with no felt the piece stands on this edge
+  // The funded build has no felt: the pieces slide on their printed bases. Felt pads are an
+  // optional add-back, so sections 4 to 7 work the numbers both ways.
   feltThickness: 1.0, // mm [assumption] self-adhesive felt sheet
   feltDiameter: 18, // mm [assumption] cut a little inside the 19 mm base
   setCount: { pawn: 16, rook: 4, knight: 4, bishop: 4, queen: 4, king: 2 }, // [design] 32 + 2 spare queens
 };
+
+// The two cases sections 4 to 7 compare: what stands on the board, and the pivot it tips about.
+const CASES = [
+  { label: 'funded build, no felt', felt: 0, padRadius: PIECE.baseDiameter / 2 },
+  { label: 'with the optional felt', felt: PIECE.feltThickness, padRadius: PIECE.feltDiameter / 2 },
+];
+const [FUNDED, FELT] = CASES;
 
 // Measured from STL exports of cad/pieces.scad ($fn = 64, OpenSCAD 2021.01).
 // Origin at the centre of the base bottom; mm, mm^2, mm^3.
@@ -121,7 +168,7 @@ const MAGNET = {
   lowExponent: 3, // [assumption] beyond 1 mm the pull falls with the cube of the gap
   sideRatio: 0.5, // [assumption] peak sideways pull / downward pull at that offset
   pullAtPeakFraction: 0.5, // [assumption] downward pull at that offset / pull when centred
-  friction: 0.3, // [assumption] felt on the paper sheet; plausible range 0.2-0.4
+  friction: 0.3, // [assumption] bare PLA (funded) or felt on the paper sheet; 0.2-0.4 tried
   diameter: 20, // mm [design]
   length: 15, // mm [design]
   heatTransfer: 15, // W/(m^2 K) [assumption] still air, convection plus radiation
@@ -136,7 +183,7 @@ const FRAME = {
   span: 500, // mm [assumption] whole rod length as the span (conservative)
   beltCentres: 500, // mm [assumption] motor pulley to idler, about one rod length
   beltClampAllowance: 30, // mm per belt end [assumption]
-  beltRoll: 5000, // mm [design] BOM row 5
+  beltRoll: 5000, // mm [design] the GT2 belt kit in docs/BOM.md
 };
 
 const BOARD = { square: 40, storageColumns: 1, pieceDiameter: 0.475 }; // [design]
@@ -377,15 +424,88 @@ out(`  max feed at 1/16: ${fix(feedLimit(stepsPerMm), 0)} mm/min; at 1/8: ${fix(
 const maxRateMmS = MOTION.maxRate / 60;
 const stepRate = maxRateMmS * stepsPerMm;
 const revPerS = maxRateMmS / mmPerRev;
-const motorAmps = MOTOR.ratedCurrent * MOTOR.currentFraction;
-const cornerFullSteps = MOTOR.supplyVolts / (2 * MOTOR.phaseInductance * motorAmps);
-const cornerFeed = (cornerFullSteps / MOTION.fullStepsPerRev) * mmPerRev * 60;
+const motorAmps = DRIVE.ratedCurrent * DRIVE.currentFraction;
+// Rule of thumb for the speed where the torque falls off: the coil current can still reach
+// full value within one full step up to about V / (2 L I) full steps per second.
+const cornerFullSteps = (volts, inductance, amps) => volts / (2 * inductance * amps);
+const cornerFeed = (fullSteps) => (fullSteps / MOTION.fullStepsPerRev) * mmPerRev * 60;
 out(`  chosen $110/$111 = ${MOTION.maxRate} mm/min = ${fix(maxRateMmS, 1)} mm/s`);
 out(`    step rate ${fix(stepRate, 0)} steps/s = ${fix((100 * stepRate) / MOTION.stepRateLimit, 0)}% of the ceiling`);
 out(`    motor speed ${fix(revPerS, 2)} rev/s = ${fix(revPerS * 60, 0)} rpm = ${fix(revPerS * MOTION.fullStepsPerRev, 0)} full steps/s`);
 out(`    diagonal G0 (both axes at their limit): ${fix(MOTION.maxRate * Math.SQRT2, 0)} mm/min`);
-out(`  torque roll-off rule of thumb: V / (2 L I) = ${MOTOR.supplyVolts} / (2 x ${MOTOR.phaseInductance * 1000} mH x ${fix(motorAmps, 2)} A)`);
-out(`    = ${fix(cornerFullSteps, 0)} full steps/s = ${fix(cornerFeed, 0)} mm/min; $110 is ${fix((100 * MOTION.maxRate) / cornerFeed, 0)}% of that`);
+out(`  torque roll-off rule of thumb: V / (2 L I), at ${DRIVE.supplyVolts} V and ${fix(motorAmps, 2)} A`);
+const rateSetting = { X: '$110', Y: '$111' };
+for (const [axis, motor] of Object.entries(MOTORS)) {
+  const steps = cornerFullSteps(DRIVE.supplyVolts, motor.phaseInductance, motorAmps);
+  out(`    ${axis}, ${motor.model}, ${fix(motor.phaseInductance * 1000, 1)} mH: ${fix(steps, 0)} full steps/s = ${fix(cornerFeed(steps), 0)} mm/min; ${rateSetting[axis]} is ${fix((100 * MOTION.maxRate) / cornerFeed(steps), 1)}% of that`);
+  if (motor.inductanceTolerance) {
+    const high = cornerFullSteps(DRIVE.supplyVolts, motor.phaseInductance * (1 + motor.inductanceTolerance), motorAmps);
+    out(`      at the listing's +${fix(100 * motor.inductanceTolerance, 0)}% inductance (${fix(motor.phaseInductance * (1 + motor.inductanceTolerance) * 1000, 2)} mH): ${fix(high, 0)} full steps/s = ${fix(cornerFeed(high), 0)} mm/min; $111 is ${fix((100 * MOTION.maxRate) / cornerFeed(high), 1)}% of that`);
+  }
+}
+// What the rule of thumb means on the one published curve found, the Y motor's own (taking its
+// 1.5 A as the peak current, the same convention as the A4988's limit).
+const curveRpm = (kpps) => (kpps * 1000 * 60) / Y_CURVE.microstepsPerRev;
+const curvePeak = Math.max(...Y_CURVE.points.map(([, t]) => t));
+const flatEnd = Y_CURVE.points.filter(([, t]) => t === curvePeak).at(-1);
+const afterFlat = Y_CURVE.points[Y_CURVE.points.indexOf(flatEnd) + 1];
+const curveCornerRpm = (cornerFullSteps(Y_CURVE.volts, MOTORS.Y.phaseInductance, Y_CURVE.amps) / MOTION.fullStepsPerRev) * 60;
+const curveAt = (rpm) => {
+  const pts = Y_CURVE.points.map(([k, t]) => [curveRpm(k), t]);
+  for (let i = 1; i < pts.length; i++) {
+    const [r0, t0] = pts[i - 1];
+    const [r1, t1] = pts[i];
+    if (rpm >= r0 && rpm <= r1) return t0 + ((t1 - t0) * (rpm - r0)) / (r1 - r0);
+  }
+  return NaN;
+};
+out(`  Y pull-out curve (StepperOnline, ${Y_CURVE.volts} V, ${Y_CURVE.amps} A, ${Y_CURVE.microstepsPerRev} microsteps/turn): ${Y_CURVE.points.map(([k, t]) => `${t} at ${fix(curveRpm(k), 0)}`).join(', ')} (N*cm at rpm)`);
+out(`    its own rule-of-thumb speed: ${Y_CURVE.volts} / (2 x ${fix(MOTORS.Y.phaseInductance * 1000, 1)} mH x ${Y_CURVE.amps} A) = ${fix(curveCornerRpm, 0)} rpm, where the curve reads ${fix(curveAt(curveCornerRpm), 0)} N*cm (${fix((100 * curveAt(curveCornerRpm)) / curvePeak, 0)}% of its ${curvePeak} N*cm peak)`);
+out(`    the peak holds to ${fix(curveRpm(flatEnd[0]), 0)} rpm = ${fix((100 * curveRpm(flatEnd[0])) / curveCornerRpm, 1)}% of that speed; ${afterFlat[1]} N*cm (${fix((100 * afterFlat[1]) / curvePeak, 0)}%) at ${fix(curveRpm(afterFlat[0]), 0)} rpm = ${fix((100 * curveRpm(afterFlat[0])) / curveCornerRpm, 1)}%`);
+// The rule of thumb leaves out back-EMF, which is set by speed, not current, so it takes twice
+// the share of 12 V that it takes of 24 V. A rough check [assumption]: treat each phase as a
+// sine-driven motor whose torque constant kt is one phase's torque per amp on section 3's
+// convention (holding torque / (sqrt 2 x rated current)). At rotor speed w (rad/s) the coil
+// then needs sqrt((R I + kt w)^2 + (p w L I)^2) volts, with p = 50 electrical cycles per turn
+// (200 full steps / 4): the back-EMF is in phase with the current, the inductive drop 90
+// degrees ahead of it. The current stays controllable while that fits under the supply less
+// the drop across the driver's two transistors and its sense resistor.
+const electricalPerTurn = MOTION.fullStepsPerRev / 4;
+const torqueConstant = (motor) => motor.holdingTorque / 100 / (Math.SQRT2 * DRIVE.ratedCurrent); // N*m/A
+const coilVolts = (motor, amps, rpm, inductance) => {
+  const w = (rpm * 2 * Math.PI) / 60;
+  return Math.hypot(motor.phaseResistance * amps + torqueConstant(motor) * w, electricalPerTurn * w * inductance * amps);
+};
+const voltageLimitRpm = (motor, amps, volts, inductance = motor.phaseInductance) => {
+  let low = 0;
+  let high = 10000;
+  for (let i = 0; i < 60; i++) {
+    const mid = (low + high) / 2;
+    if (coilVolts(motor, amps, mid, inductance) < volts) low = mid;
+    else high = mid;
+  }
+  return low;
+};
+const driverDrop = motorAmps * (2 * DRIVE.rdsOnMax + DRIVE.senseResistor);
+const voltsLeft = DRIVE.supplyVolts - driverDrop;
+const rateRpm = revPerS * 60;
+out(`  back-EMF check (rough): kt = holding torque / (sqrt 2 x ${DRIVE.ratedCurrent} A); a coil needs sqrt((R I + kt w)^2 + (${electricalPerTurn} w L I)^2) volts`);
+out(`    the A4988 drops ${fix(motorAmps, 2)} A x (2 x ${DRIVE.rdsOnMax} + ${DRIVE.senseResistor} ohm) = ${fix(driverDrop, 2)} V, leaving ${fix(voltsLeft, 1)} V of ${DRIVE.supplyVolts} V`);
+const limitRpm = {};
+for (const [axis, motor] of Object.entries(MOTORS)) {
+  limitRpm[axis] = voltageLimitRpm(motor, motorAmps, voltsLeft);
+  out(`    ${axis}, ${motor.model}: kt ${fix(torqueConstant(motor), 2)} N*m/A; needs ${fix(coilVolts(motor, motorAmps, rateRpm, motor.phaseInductance), 1)} V at ${fix(rateRpm, 0)} rpm; current controllable up to about ${fix(limitRpm[axis], 0)} rpm, ${fix(limitRpm[axis] / rateRpm, 1)}x ${rateSetting[axis]}`);
+  if (motor.inductanceTolerance) {
+    const high = voltageLimitRpm(motor, motorAmps, voltsLeft, motor.phaseInductance * (1 + motor.inductanceTolerance));
+    out(`      at the listing's +${fix(100 * motor.inductanceTolerance, 0)}% inductance: needs ${fix(coilVolts(motor, motorAmps, rateRpm, motor.phaseInductance * (1 + motor.inductanceTolerance)), 1)} V at ${fix(rateRpm, 0)} rpm; about ${fix(high, 0)} rpm, ${fix(high / rateRpm, 1)}x`);
+  }
+}
+// The same check at the curve's own settings, with no driver drops (its driver is not named;
+// that puts its limit higher and makes the comparison below a little cautious).
+const curveLimitRpm = voltageLimitRpm(MOTORS.Y, Y_CURVE.amps, Y_CURVE.volts);
+const yFraction = rateRpm / limitRpm.Y;
+out(`    the same check at the curve's ${Y_CURVE.volts} V and ${Y_CURVE.amps} A (no driver drops): about ${fix(curveLimitRpm, 0)} rpm; the curve's peak holds to ${fix((100 * curveRpm(flatEnd[0])) / curveLimitRpm, 0)}% of that`);
+out(`    $111 is ${fix(100 * yFraction, 0)}% of Y's limit; at ${fix(100 * yFraction, 0)}% of ${fix(curveLimitRpm, 0)} rpm (${fix(yFraction * curveLimitRpm, 0)} rpm) the curve reads ${fix(curveAt(yFraction * curveLimitRpm), 1)} N*cm, ${fix((100 * curveAt(yFraction * curveLimitRpm)) / curvePeak, 0)}% of its peak`);
 out(`  drag feed F${MOTION.dragFeed} = ${fix(MOTION.dragFeed / 60, 1)} mm/s = ${fix((MOTION.dragFeed / 60) * stepsPerMm, 0)} steps/s`);
 
 // Pieces: computed here because section 3 needs them, printed in section 4
@@ -401,11 +521,12 @@ const pieces = PIECE.names.map((name) => {
   const bodyZ = shell >= g.volume ? g.volumeCentroid[2] : (shell * g.areaCentroid[2] + infill * g.volumeCentroid[2]) / printed;
   const bodyMass = (printed * MASS.plaDensity) / 1000;
   const solidMass = (g.volume * MASS.plaDensity) / 1000;
+  // cg: height above the bottom of the printed base, so above the board with no felt.
   const combine = (m, z, xy) => {
     const total = m + washerMass;
     return {
       mass: total,
-      cg: (m * z + washerMass * washerZ) / total + PIECE.feltThickness,
+      cg: (m * z + washerMass * washerZ) / total,
       offset: (m * xy) / total,
     };
   };
@@ -432,25 +553,33 @@ const heaviest = pieces.reduce((a, b) => (b.solid.mass > a.solid.mass ? b : a));
 out(`  heaviest piece (${heaviest.name}, solid print): ${fix(heaviest.solid.mass, 2)} g, dragged by the magnet, not the belts`);
 const pulleyRadius = (MOTION.pulleyTeeth * MOTION.beltPitch) / (2 * Math.PI); // mm
 // [assumption] The holding torque is rated with both phases at the rated current (the
-// usual convention; the listing does not say). The A4988's current limit sets the peak
+// usual convention; neither listing says). The A4988's current limit sets the peak
 // of its microstep sine wave, so at any microstep the torque is that of one phase at
 // the limit: holding torque x limit / (sqrt 2 x rated current).
-const torqueCurrentFactor = motorAmps / (Math.SQRT2 * MOTOR.ratedCurrent);
-const available = MOTOR.holdingTorque * torqueCurrentFactor * MOTOR.torqueDerate;
+const torqueCurrentFactor = motorAmps / (Math.SQRT2 * DRIVE.ratedCurrent);
+const usable = Object.fromEntries(Object.entries(MOTORS).map(([axis, motor]) => [axis, motor.holdingTorque * torqueCurrentFactor * DRIVE.torqueDerate]));
+const moving = { X: carriage, Y: gantry }; // g
+// Torque the axis motor must give (N*cm): belt force at the pulley plus the rotor's own inertia.
+const rotorShare = (axis, accel) => MOTORS[axis].rotorInertia * (accel / 1000 / (pulleyRadius / 1000)) * 100;
+const torqueNeeded = (axis, accel) => (((moving[axis] / 1000) * (accel / 1000) + MASS.resistance) * pulleyRadius) / 10 + rotorShare(axis, accel);
 out(`  pulley pitch radius ${fix(pulleyRadius, 2)} mm`);
-out(`  current factor ${fix(motorAmps, 2)} A / (sqrt 2 x ${MOTOR.ratedCurrent} A) = ${fix(torqueCurrentFactor, 2)}; usable torque ${MOTOR.holdingTorque} x ${fix(torqueCurrentFactor, 2)} x ${MOTOR.torqueDerate} = ${fix(available, 1)} N*cm`);
-const torqueRows = [['axis', 'accel mm/s^2', 'm*a N', 'resistance N', 'belt N', 'torque N*cm', 'margin']];
+out(`  current factor ${fix(motorAmps, 2)} A / (sqrt 2 x ${DRIVE.ratedCurrent} A) = ${fix(torqueCurrentFactor, 2)}; usable torque = holding torque x ${fix(torqueCurrentFactor, 2)} x ${DRIVE.torqueDerate}`);
+for (const [axis, motor] of Object.entries(MOTORS)) {
+  out(`    ${axis}, ${motor.model}: ${motor.holdingTorque} x ${fix(torqueCurrentFactor, 2)} x ${DRIVE.torqueDerate} = ${fix(usable[axis], 1)} N*cm`);
+}
+out(`  check against Y's published curve (section 2): ${curvePeak} N*cm at low speed and ${Y_CURVE.amps} A; this model at ${Y_CURVE.amps} A, before the speed derating: ${MOTORS.Y.holdingTorque} / sqrt 2 = ${fix(MOTORS.Y.holdingTorque / Math.SQRT2, 0)} N*cm`);
+out(`    if the curve's ${Y_CURVE.amps} A is rms (${fix(Y_CURVE.amps * Math.SQRT2, 2)} A peak), the model gives ${fix((MOTORS.Y.holdingTorque * Y_CURVE.amps * Math.SQRT2) / (Math.SQRT2 * DRIVE.ratedCurrent), 0)} N*cm there, close to the curve`);
+const torqueRows = [['axis', 'accel mm/s^2', 'm*a N', 'resistance N', 'belt N', 'torque N*cm', 'usable N*cm', 'margin']];
 for (const accel of [MOTION.accel, 1000]) {
-  for (const [axis, grams] of [['X', carriage], ['Y', gantry]]) {
-    const ma = (grams / 1000) * (accel / 1000);
-    const belt = ma + MASS.resistance;
-    const torque = (belt * pulleyRadius) / 10 + (MOTOR.rotorInertia * (accel / 1000 / (pulleyRadius / 1000))) * 100;
-    torqueRows.push([axis, accel, fix(ma, 2), fix(MASS.resistance, 1), fix(belt, 2), fix(torque, 2), `${fix(available / torque, 1)}x`]);
+  for (const axis of ['X', 'Y']) {
+    const ma = (moving[axis] / 1000) * (accel / 1000);
+    const torque = torqueNeeded(axis, accel);
+    torqueRows.push([axis, accel, fix(ma, 2), fix(MASS.resistance, 1), fix(ma + MASS.resistance, 2), fix(torque, 2), fix(usable[axis], 1), `${fix(usable[axis] / torque, 1)}x`]);
   }
 }
 table(torqueRows);
-const rotorTorque = MOTOR.rotorInertia * (MOTION.accel / 1000 / (pulleyRadius / 1000)) * 100;
-out(`  rotor inertia share at ${MOTION.accel} mm/s^2: ${fix(rotorTorque, 3)} N*cm`);
+out(`  rotor inertia share at ${MOTION.accel} mm/s^2: ${fix(rotorShare('X', MOTION.accel), 3)} N*cm (Y's rotor inertia was not found; the 17HS4401's is used)`);
+out(`    if Y's rotor had twice that inertia, Y would need ${fix(torqueNeeded('Y', MOTION.accel) + rotorShare('Y', MOTION.accel), 2)} N*cm instead of ${fix(torqueNeeded('Y', MOTION.accel), 2)}`);
 
 // 4. Pieces
 heading('4. Piece mass and centre of gravity');
@@ -458,7 +587,7 @@ out(`  geometry: ${geometrySource}`);
 out(`  M8 washer: pi/4 x (${PIECE.washerOuter}^2 - ${PIECE.washerInner}^2) x ${PIECE.washerThickness} = ${fix(washerVolume, 1)} mm^3 of steel = ${fix(washerMass, 2)} g`);
 out(`    face ${fix(PIECE.washerRecess, 1)} mm up inside the ${PIECE.pocketDepth} mm pocket, centre ${fix(washerZ, 1)} mm above the base bottom`);
 out(`  printed mass = PLA ${MASS.plaDensity} g/cm^3 x (shell + ${PIECE.infill * 100}% of the inside); shell = min(volume, area x ${PIECE.shellThickness} mm)`);
-out(`  heights above the board include the ${PIECE.feltThickness} mm felt pad`);
+out(`  CG heights are above the board for the ${FUNDED.label}; add ${fix(FELT.felt, 1)} mm ${FELT.label} pad`);
 table([
   ['piece', 'tall mm', 'volume cm^3', 'area cm^2', 'printed g', 'solid g', 'total g', 'CG mm', 'CG solid mm', 'CG off-axis mm'],
   ...pieces.map((p) => [
@@ -477,11 +606,15 @@ table([
 const setPla = pieces.reduce((sum, p) => sum + p.bodyMass * PIECE.setCount[p.name], 0);
 const setCount = Object.values(PIECE.setCount).reduce((a, b) => a + b, 0);
 out(`  PLA for the ${setCount}-piece set at ${PIECE.infill * 100}% infill: ${fix(setPla, 0)} g (slicer extras such as skirts not included)`);
+const cgRange = (key, felt) => `${fix(Math.min(...pieces.map((p) => p[key].cg)) + felt, 1)}-${fix(Math.max(...pieces.map((p) => p[key].cg)) + felt, 1)}`;
+for (const c of CASES) out(`  CG above the board, ${c.label}: ${cgRange('nominal', c.felt)} mm (${cgRange('solid', c.felt)} mm if printed solid)`);
 
 // 5. Magnet pull through the gap
 heading('5. Magnet pull through the board (estimate)');
-const gap = MAGNET.ptfeTape + MAGNET.boardTop + MAGNET.paperSheet + PIECE.feltThickness + PIECE.washerRecess;
-out(`  gap = PTFE ${MAGNET.ptfeTape} + top ${MAGNET.boardTop} + paper ${MAGNET.paperSheet} + felt ${PIECE.feltThickness} + washer recess ${fix(PIECE.washerRecess, 1)} = ${fix(gap, 1)} mm`);
+const gapFor = (c) => MAGNET.ptfeTape + MAGNET.boardTop + MAGNET.paperSheet + c.felt + PIECE.washerRecess;
+for (const c of CASES) c.gap = gapFor(c);
+out(`  gap = PTFE ${MAGNET.ptfeTape} + top ${MAGNET.boardTop} + paper ${MAGNET.paperSheet} + felt + washer recess ${fix(PIECE.washerRecess, 1)}`);
+for (const c of CASES) out(`    ${c.label}: felt ${fix(c.felt, 1)} mm, gap ${fix(c.gap, 1)} mm`);
 const refPoints = MAGNET.reference.points;
 const [g1, f1] = refPoints.at(-2);
 const [g2, f2] = refPoints.at(-1);
@@ -495,50 +628,66 @@ out(`  reference (whole newtons): ${MAGNET.reference.contact} N in contact, ${re
 out(`  high estimate: F = ${f2} N x (1 mm / gap)^${fix(highExponent, 2)} (the slope between ${g1} and ${g2} mm, continued)`);
 out(`  low estimate: F = ${f2} N x ${MAGNET.ratedHold}/${MAGNET.reference.contact} x (1 mm / gap)^${MAGNET.lowExponent}`);
 const heaviestWeight = (heaviest.solid.mass / 1000) * G;
+const thinTopGap = FUNDED.gap - 1;
 table([
   ['gap', 'high N', 'low N', `${heaviest.name} weight N`],
   ...[
-    [gap, 'as designed'],
-    [gap - PIECE.feltThickness, 'no felt'],
-    [gap - PIECE.feltThickness - 1, 'no felt, 2 mm top'],
+    [FUNDED.gap, FUNDED.label],
+    [FELT.gap, FELT.label],
+    [thinTopGap, 'no felt, 2 mm top'],
   ].map(([g, label]) => [`${fix(g, 1)} mm (${label})`, fix(pullHighAt(g), 3), fix(pullLowAt(g), 4), fix(heaviestWeight, 3)]),
 ]);
-const pullHigh = pullHighAt(gap);
-const pullLow = pullLowAt(gap);
 out(`  the same power law through ${g2} mm, from each earlier table point:`);
-const spread = refPoints.slice(0, -1).map((point) => ({ point, exponent: slopeTo(point), pull: f2 * (g2 / gap) ** slopeTo(point) }));
+const spreadAt = (gap) => refPoints.slice(0, -1).map((point) => ({ point, exponent: slopeTo(point), pull: f2 * (g2 / gap) ** slopeTo(point) }));
 table([
-  ['from', 'exponent', `pull at ${fix(gap, 1)} mm N`],
-  ...spread.map(({ point: [g, f], exponent, pull }) => [`${fix(g, 2)} mm (${f} N)`, fix(exponent, 2), fix(pull, 3)]),
+  ['from', 'exponent', ...CASES.map((c) => `pull at ${fix(c.gap, 1)} mm N`)],
+  ...refPoints.slice(0, -1).map((point, i) => [`${fix(point[0], 2)} mm (${point[1]} N)`, fix(slopeTo(point), 2), ...CASES.map((c) => fix(spreadAt(c.gap)[i].pull, 3))]),
 ]);
-const spreadLow = Math.min(...spread.map((s) => s.pull));
-const spreadHigh = Math.max(...spread.map((s) => s.pull));
-out(`  range of those: ${fix(spreadLow, 3)} to ${fix(spreadHigh, 3)} N`);
-out(`  at ${fix(gap, 1)} mm the two estimates are ${fix(pullLow / heaviestWeight, 2)} and ${fix(pullHigh / heaviestWeight, 2)} times the ${heaviest.name}'s weight`);
-out(`  removing the felt multiplies the pull by ${fix(pullHighAt(gap - PIECE.feltThickness) / pullHigh, 2)} (high) or ${fix(pullLowAt(gap - PIECE.feltThickness) / pullLow, 2)} (low)`);
+for (const c of CASES) {
+  c.pullHigh = pullHighAt(c.gap);
+  c.pullLow = pullLowAt(c.gap);
+  c.spreadLow = Math.min(...spreadAt(c.gap).map((s) => s.pull));
+  c.spreadHigh = Math.max(...spreadAt(c.gap).map((s) => s.pull));
+  out(`  ${c.label}, ${fix(c.gap, 1)} mm: estimates ${fix(c.pullLow, 4)} N (low) and ${fix(c.pullHigh, 3)} N (high), ${fix(c.pullLow / heaviestWeight, 2)} and ${fix(c.pullHigh / heaviestWeight, 2)} times the ${heaviest.name}'s weight; other table points give ${fix(c.spreadLow, 3)} to ${fix(c.spreadHigh, 3)} N`);
+}
+out(`  removing the felt multiplies the pull by ${fix(FUNDED.pullHigh / FELT.pullHigh, 2)} (high) or ${fix(FUNDED.pullLow / FELT.pullLow, 2)} (low)`);
+out(`  a 2 mm top on top of that (gap ${fix(thinTopGap, 1)} mm) multiplies the funded build's pull by ${fix(pullHighAt(thinTopGap) / FUNDED.pullHigh, 2)} (high) or ${fix(pullLowAt(thinTopGap) / FUNDED.pullLow, 2)} (low)`);
 
 // 6. Tipping
 heading('6. Tipping');
-const r = PIECE.feltDiameter / 2;
-const zw = washerZ + PIECE.feltThickness;
 const mu = MAGNET.friction;
-out(`  pivot radius r = ${fix(r, 1)} mm (felt pad edge, less the CG's off-axis offset); magnet force acts at the washer, zw = ${fix(zw, 1)} mm`);
+out(`  pivot: the edge the piece stands on (radius r, less the CG's off-axis offset); the magnet acts at the washer, zw above the board`);
 out(`  A: g x r / h                         (drive at the board surface, no friction, no magnet pull)`);
 out(`  B: g x (r - mu zw) / (h - zw)        (drive at the washer while braking, mu = ${mu})`);
-out(`  C: (g + Fv/m) x (r - mu zw) / (h - zw), Fv = ${MAGNET.pullAtPeakFraction} x pull = ${fix(MAGNET.pullAtPeakFraction * pullLow, 4)} N (low estimate) or ${fix(MAGNET.pullAtPeakFraction * pullHigh, 3)} N (high)`);
+out(`  C: (g + Fv/m) x (r - mu zw) / (h - zw), Fv = ${MAGNET.pullAtPeakFraction} x the centred pull (low and high estimates at that case's gap)`);
 out(`  solid prints (heavier, higher CG: the worse case); tipping accelerations in mm/s^2, to the nearest 100`);
-const tipRows = [['piece', 'CG mm', 'mass g', 'A', 'B', 'C low', 'C high', 'A / $120']];
-for (const p of pieces) {
-  const h = p.solid.cg;
-  const reff = r - p.solid.offset;
-  const m = p.solid.mass / 1000;
-  const a = (G * reff) / h;
-  const b = (G * (reff - mu * zw)) / (h - zw);
-  const c = (pull) => (G + (MAGNET.pullAtPeakFraction * pull) / m) * ((reff - mu * zw) / (h - zw));
-  const mmS2 = (value) => String(Math.round(value * 10) * 100); // m/s^2 to mm/s^2, nearest 100
-  tipRows.push([p.name, fix(h, 1), fix(p.solid.mass, 2), mmS2(a), mmS2(b), mmS2(c(pullLow)), mmS2(c(pullHigh)), `${fix((a * 1000) / MOTION.accel, 0)}x`]);
+const mmS2 = (value) => String(Math.round(value * 10) * 100); // m/s^2 to mm/s^2, nearest 100
+for (const c of CASES) {
+  const zw = washerZ + c.felt;
+  out(`  ${c.label}: r = ${fix(c.padRadius, 1)} mm (${c.felt ? 'the felt pad' : 'the printed base'}), zw = ${fix(zw, 1)} mm, Fv = ${fix(MAGNET.pullAtPeakFraction * c.pullLow, 4)} N (low) or ${fix(MAGNET.pullAtPeakFraction * c.pullHigh, 3)} N (high)`);
+  const tipRows = [['piece', 'CG mm', 'mass g', 'A', 'B', 'C low', 'C high', 'A / $120']];
+  for (const p of pieces) {
+    const h = p.solid.cg + c.felt;
+    const reff = c.padRadius - p.solid.offset;
+    const m = p.solid.mass / 1000;
+    const a = (G * reff) / h;
+    const b = (G * (reff - mu * zw)) / (h - zw);
+    const full = (pull) => (G + (MAGNET.pullAtPeakFraction * pull) / m) * ((reff - mu * zw) / (h - zw));
+    tipRows.push([p.name, fix(h, 1), fix(p.solid.mass, 2), mmS2(a), mmS2(b), mmS2(full(c.pullLow)), mmS2(full(c.pullHigh)), `${fix((a * 1000) / MOTION.accel, 0)}x`]);
+  }
+  table(tipRows);
 }
-table(tipRows);
+// With no felt the washer is exposed: the pocket is open at the bottom of the base, so the
+// piece stands on the ring of PLA around it. If the washer sits flush with that ring or proud
+// of it (glue between it and the top of its pocket, a washer as thick as the pocket), the
+// piece stands on the steel and tips about the washer's edge instead. h is kept at the
+// funded build's (a flush washer lowers the CG slightly, which only helps).
+const ringWidth = (PIECE.baseDiameter - PIECE.pocketDiameter) / 2;
+const onSteel = pieces
+  .map((p) => ({ p, a: (G * (PIECE.washerOuter / 2 - p.solid.offset)) / p.solid.cg }))
+  .reduce((x, y) => (y.a < x.a ? y : x));
+out(`  ${FUNDED.label}: the base stands on a ${fix(ringWidth, 1)} mm ring of PLA round the open washer pocket, the washer's face ${fix(PIECE.washerRecess, 1)} mm above the board`);
+out(`    if the washer sits flush or proud, the piece stands on the steel: r = ${fix(PIECE.washerOuter / 2, 1)} mm, A for the ${onSteel.p.name} = ${mmS2(onSteel.a)} mm/s^2 (${fix((onSteel.a * 1000) / MOTION.accel, 0)}x $120)`);
 
 // 7. Grip
 heading('7. Grip: does the piece follow the magnet?');
@@ -546,12 +695,12 @@ const m = heaviest.solid.mass / 1000;
 const weight = m * G;
 const inertia = m * (MOTION.accel / 1000);
 out(`  heaviest piece ${heaviest.name}: m = ${fix(heaviest.solid.mass, 2)} g, weight ${fix(weight, 4)} N, m x a at ${MOTION.accel} mm/s^2 = ${fix(inertia, 4)} N`);
-out(`  friction from the weight alone: mu x weight = ${fix(mu * weight, 4)} N`);
+out(`  friction from the weight alone: mu x weight = ${fix(mu * weight, 4)} N (mu = ${mu} assumed for bare PLA, the funded build, and for felt alike; no figure was found for either)`);
 out(`  needed sideways force = mu x (weight + Fv) + m a; available = s x Fv, s = ${MAGNET.sideRatio}`);
 out(`  so Fv x (s - mu) >= mu x weight + m a, and the centred pull F >= Fv / ${MAGNET.pullAtPeakFraction}`);
 const required = (friction, side) => (side > friction ? (friction * weight + inertia) / (side - friction) / MAGNET.pullAtPeakFraction : Infinity);
 const sides = [0.4, MAGNET.sideRatio, 0.7];
-out('  centred pull needed, N (rows: felt mu; columns: s):');
+out('  centred pull needed, N (rows: mu; columns: s):');
 table([
   ['mu', ...sides.map((s) => `s = ${s}`)],
   ...[0.2, 0.3, 0.4].map((friction) => [fix(friction, 1), ...sides.map((s) => (Number.isFinite(required(friction, s)) ? fix(required(friction, s), 3) : 'never'))]),
@@ -571,9 +720,12 @@ const sidewaysRatio = (pull) => {
   const fv = MAGNET.pullAtPeakFraction * pull;
   return { need: mu * (weight + fv) + inertia, have: MAGNET.sideRatio * fv };
 };
-for (const [label, pull] of [['high estimate', pullHigh], ['low estimate', pullLow], ['top of the table-slope range', spreadHigh]]) {
-  const { need, have } = sidewaysRatio(pull);
-  out(`  at ${fix(gap, 1)} mm, ${label} ${fix(pull, 4)} N = ${fix(pull / pullNeeded, 2)} x the ${fix(pullNeeded, 3)} N needed: sideways needed ${fix(need, 4)} N, available ${fix(have, 4)} N, ratio ${fix(have / need, 2)}`);
+for (const c of CASES) {
+  out(`  ${c.label}, ${fix(c.gap, 1)} mm gap:`);
+  for (const [label, pull] of [['high estimate', c.pullHigh], ['top of the table-slope range', c.spreadHigh], ['low estimate', c.pullLow]]) {
+    const { need, have } = sidewaysRatio(pull);
+    out(`    ${label} ${fix(pull, 4)} N = ${fix(pull / pullNeeded, 2)} x the ${fix(pullNeeded, 3)} N needed: sideways needed ${fix(need, 4)} N, available ${fix(have, 4)} N, ratio ${fix(have / need, 2)}`);
+  }
 }
 
 // Standing pieces the switched-on magnet passes. Replay the reset job (section 10)
@@ -617,6 +769,23 @@ table([
     return [fix(friction, 1), fix(required(friction, MAGNET.sideRatio), 3), fix(sideways, 4), fix(hold, 4), `${fix(sideways / hold, 1)}x`];
   }),
 ]);
+// The felt add-back adds 1 mm of gap, so it only helps grip if it slides enough more easily
+// than bare PLA. Friction coefficient at which the felt needs a pull smaller by the gap's ratio:
+// mu = (target k s - m a) / (weight + target k), with target = pull needed / ratio, k = fraction.
+const breakEven = (ratio) => {
+  const target = pullNeeded / ratio;
+  const k = MAGNET.pullAtPeakFraction;
+  return (target * k * MAGNET.sideRatio - inertia) / (weight + target * k);
+};
+out(`  felt breaks even with bare PLA at mu = ${mu} if the felt's mu is below ${fix(breakEven(FUNDED.pullHigh / FELT.pullHigh), 2)} (high-estimate slope) or ${fix(breakEven(FUNDED.pullLow / FELT.pullLow), 2)} (low)`);
+// A magnet stronger than just enough pulls harder 20 mm out too, so the contrast it needs
+// grows with its strength (mu = 0.3).
+const holdPawn = mu * lightWeight;
+out(`    if the magnet is stronger than just enough, the peak sideways pull is s x ${MAGNET.pullAtPeakFraction} x the centred pull, so (mu = ${mu}):`);
+for (const c of CASES) {
+  const contrast = (pull) => (MAGNET.sideRatio * MAGNET.pullAtPeakFraction * pull) / holdPawn;
+  out(`      ${c.label}, ${fix(c.gap, 1)} mm: ${fix(contrast(c.pullHigh), 1)}x at the high estimate (${fix(c.pullHigh, 3)} N), ${fix(contrast(c.spreadHigh), 1)}x at the top of the range (${fix(c.spreadHigh, 3)} N)`);
+}
 
 // 8. Rod deflection
 heading('8. Rod deflection');
@@ -640,6 +809,7 @@ heading('9. Belt lengths');
 const loop = 2 * FRAME.beltCentres + MOTION.pulleyTeeth * MOTION.beltPitch + 2 * FRAME.beltClampAllowance;
 out(`  one loop = 2 x ${FRAME.beltCentres} + ${MOTION.pulleyTeeth * MOTION.beltPitch} (half of each pulley) + 2 x ${FRAME.beltClampAllowance} (clamps) = ${loop} mm`);
 out(`  X + Y loops: ${2 * loop} mm of ${FRAME.beltRoll} mm; spare ${FRAME.beltRoll - 2 * loop} mm (a third loop would leave ${FRAME.beltRoll - 3 * loop} mm)`);
+out(`  the idlers are ${MOTION.pulleyTeeth}-tooth either way (the belt kit's 5 mm-bore ones or the optional 3 mm-bore ones), so the loop is the same`);
 
 // 10. Reset job
 heading('10. Reset job: time and magnet duty');
@@ -669,19 +839,80 @@ table([
 
 // 11. Power and heat
 heading('11. Power budget and magnet heat');
-const copper = motorAmps ** 2 * MOTOR.phaseResistance;
-// A chopper connects each coil to the supply for only part of the time, so a coil never
-// draws more from the supply than its own current. The two coils' currents add up to
-// at most sqrt 2 x the limit (both at 71% of it, as at each full-step position).
+const volts = DRIVE.supplyVolts;
+// While a coil is driven, its bridge draws exactly the coil current from the supply; in slow
+// decay it draws nothing, and in fast decay it returns current, so a coil never draws more
+// than its own current. The two coils' currents add up to at most sqrt 2 x the limit (both at
+// 71% of it, as at each full-step position). This takes the limit as exactly 1.05 A: one set
+// higher (Vref set high, the A4988's own trip-level error) raises the motors' share with it.
 const motorSupplyBound = Math.SQRT2 * motorAmps;
 const supplyPeak = 2 * motorSupplyBound + MAGNET.amps;
 const magnetWatts = MAGNET.volts * MAGNET.amps;
-out(`  motor current limit ${MOTOR.currentFraction} x ${MOTOR.ratedCurrent} A = ${fix(motorAmps, 2)} A (the peak of the microstep sine)`);
-out(`    copper loss: two coils at ${fix(motorAmps, 2)} / sqrt 2 A rms = ${fix(motorAmps, 2)}^2 x ${MOTOR.phaseResistance} ohm = ${fix(copper, 2)} W per motor`);
+out(`  motor current limit ${DRIVE.currentFraction} x ${DRIVE.ratedCurrent} A = ${fix(motorAmps, 2)} A (the peak of the microstep sine)`);
 out(`  A4988: Vref = I x 8 x Rs; Rs = 0.100 ohm (R100) gives ${fix(motorAmps * 8 * 0.1, 2)} V, Rs = 0.068 ohm (R068) gives ${fix(motorAmps * 8 * 0.068, 2)} V`);
 out(`  supply current, upper bound: each motor at most both coils' currents, sqrt 2 x ${fix(motorAmps, 2)} = ${fix(motorSupplyBound, 2)} A`);
-out(`    2 x ${fix(motorSupplyBound, 2)} A + magnet ${MAGNET.amps} A = ${fix(supplyPeak, 2)} A (${fix(supplyPeak * MOTOR.supplyVolts, 0)} W) of 5 A`);
-out(`    a worst case: at standstill a coil needs only ${fix(motorAmps, 2)} A x ${MOTOR.phaseResistance} ohm = ${fix(motorAmps * MOTOR.phaseResistance, 1)} V of the ${MOTOR.supplyVolts} V, so the real draw is far lower`);
+out(`    2 x ${fix(motorSupplyBound, 2)} A + magnet ${MAGNET.amps} A = ${fix(supplyPeak, 2)} A (${fix(supplyPeak * volts, 0)} W) for the coils and the magnet, with the limit at exactly ${fix(motorAmps, 2)} A`);
+out(`    ${fix(supplyPeak - DRIVE.supplyRating, 2)} A over the funded build's ${DRIVE.supplyRating} A adapter; under the optional 5 A adapter and the ${DRIVE.fuse} A fuse`);
+out(`    far from it in use: at standstill a coil needs only ${fix(motorAmps, 2)} A x R of the ${volts} V: ${Object.entries(MOTORS).map(([axis, motor]) => `${fix(motorAmps * motor.phaseResistance, 1)} V on ${axis}`).join(', ')}`);
+// Estimate from an energy balance. Averaged over many steps (whole electrical cycles, over
+// which the energy stored in the coils comes back to where it started), the supply provides
+// the power the motors and drivers use: the coils' copper loss, the drivers' conduction loss,
+// the sense resistors, the drivers' own supply current and the mechanical output. The decay
+// mode does not change this: slow decay recirculates the current inside the bridge, and fast
+// decay returns the coils' stored energy to the 12 V rail, so the balance already nets them
+// out; their cost is the conduction loss counted here. At every microstep the two coil
+// currents are I cos and I sin of the step angle, so each loss is I^2 x the resistance the
+// current flows through, at any position.
+// Pulley speed (rad/s) at a feed in mm/s.
+const pulleySpeed = (mmPerS) => mmPerS / pulleyRadius;
+const omega = pulleySpeed(maxRateMmS); // at $110
+const motorWatts = (axis, rdsOn, outputTorque, speed = omega, resistance = MOTORS[axis].phaseResistance) => {
+  const copper = motorAmps ** 2 * resistance;
+  const driver = motorAmps ** 2 * 2 * rdsOn; // two FETs carry each coil's current
+  const sense = motorAmps ** 2 * DRIVE.senseResistor; // at most: the sense resistor never carries more
+  const output = (outputTorque / 100) * speed; // N*cm to N*m, times rad/s
+  return { copper, driver, sense, output, total: copper + driver + sense + output };
+};
+const quiescentAmps = DRIVE.drivers * DRIVE.quiescent;
+const loadTorque = (axis) => torqueNeeded(axis, MOTION.accel);
+const listedResistance = (axis) => MOTORS[axis].phaseResistance;
+// Supply current: both motors energized (GRBL enables both drivers together), both axes
+// giving torqueFor(axis) at the given feed, plus the drivers' own current and the magnet.
+const estimate = ({ rdsOn = DRIVE.rdsOnMax, torqueFor = loadTorque, mmPerS = maxRateMmS, magnet = true, motorScale = 1, resistanceFor = listedResistance } = {}) => {
+  const watts = Object.keys(MOTORS).map((axis) => motorWatts(axis, rdsOn, torqueFor(axis), pulleySpeed(mmPerS), resistanceFor(axis)).total);
+  return (motorScale * watts.reduce((a, b) => a + b, 0)) / volts + quiescentAmps + (magnet ? MAGNET.amps : 0);
+};
+out(`  supply current, estimate: energy balance, both motors at $110 = ${MOTION.maxRate} mm/min (${fix(omega, 1)} rad/s at the pulley) with section 3's torque at ${MOTION.accel} mm/s^2, magnet on`);
+out(`    copper = ${fix(motorAmps, 2)}^2 x R; driver = ${fix(motorAmps, 2)}^2 x 2 x Rds(on) ${DRIVE.rdsOnMax} ohm (A4988 maximum at 25 C); sense resistors at most ${fix(motorAmps, 2)}^2 x ${DRIVE.senseResistor} ohm`);
+const powerRows = [['motor', 'R ohm', 'copper W', 'driver W', 'sense W', 'output W', 'total W', 'from 12 V A']];
+let motorsWatts = 0;
+for (const axis of Object.keys(MOTORS)) {
+  const w = motorWatts(axis, DRIVE.rdsOnMax, loadTorque(axis));
+  motorsWatts += w.total;
+  powerRows.push([`${axis} ${MOTORS[axis].model}`, fix(MOTORS[axis].phaseResistance, 1), fix(w.copper, 2), fix(w.driver, 2), fix(w.sense, 2), fix(w.output, 2), fix(w.total, 2), fix(w.total / volts, 2)]);
+}
+table(powerRows);
+const supplyEstimate = estimate();
+out(`    motors ${fix(motorsWatts / volts, 2)} A + drivers' own supply current ${DRIVE.drivers} x ${DRIVE.quiescent * 1000} mA = ${fix(quiescentAmps, 3)} A + magnet ${MAGNET.amps} A`);
+out(`    = ${fix(supplyEstimate, 2)} A (${fix(supplyEstimate * volts, 1)} W) = ${fix((100 * supplyEstimate) / DRIVE.supplyRating, 0)}% of the ${DRIVE.supplyRating} A adapter: ${fix(DRIVE.supplyRating / supplyEstimate, 1)}x margin`);
+const hot = 50; // K [assumption] a warm winding; used for the motors here and the magnet below
+const hotResistance = 1 + MAGNET.copperTempco * hot;
+const xListingResistance = MOTORS.X.ratedVoltage / DRIVE.ratedCurrent;
+out('    what-ifs, each changing one input of that case (the figure is the total supply current):');
+out(`      typical Rds(on) ${DRIVE.rdsOnTypical} ohm: ${fix(estimate({ rdsOn: DRIVE.rdsOnTypical }), 2)} A`);
+out(`      windings ${hot} K above room temperature (copper resistance x ${fix(hotResistance, 2)}): ${fix(estimate({ resistanceFor: (axis) => MOTORS[axis].phaseResistance * hotResistance }), 2)} A`);
+out(`      X coil at ${fix(xListingResistance, 1)} ohm (its listing's ${MOTORS.X.ratedVoltage} V rated voltage / ${DRIVE.ratedCurrent} A): ${fix(estimate({ resistanceFor: (axis) => (axis === 'X' ? xListingResistance : MOTORS[axis].phaseResistance) }), 2)} A`);
+out(`      each axis needs all its usable torque at that speed: ${fix(estimate({ torqueFor: (axis) => usable[axis] }), 2)} A`);
+out(`      each motor gives its full torque at ${fix(motorAmps, 2)} A (${Object.entries(MOTORS).map(([axis, motor]) => `${fix(motor.holdingTorque * torqueCurrentFactor, 1)} N*cm on ${axis}`).join(', ')}; no ${DRIVE.torqueDerate} derating), the most it can give before it stalls on section 3's model: ${fix(estimate({ torqueFor: (axis) => MOTORS[axis].holdingTorque * torqueCurrentFactor }), 2)} A`);
+out(`      the motors' share twice the estimate (switching and iron losses, a hot driver): ${fix(estimate({ motorScale: 2 }), 2)} A`);
+out(`    reaching the bound would take ${fix(2 * motorSupplyBound * volts, 1)} W into the motors and drivers; the estimate is ${fix(motorsWatts, 1)} W (${fix((2 * motorSupplyBound * volts) / motorsWatts, 1)}x)`);
+out('  what a meter in series with the 12 V lead should show (same estimate):');
+out('    Milestone 2, motors only:');
+out(`      homing at $25 = ${HOMING.seekRate} mm/min: ${fix(estimate({ mmPerS: HOMING.seekRate / 60, magnet: false }), 2)} A`);
+out(`      motors enabled and still ($1 = 255): ${fix(estimate({ mmPerS: 0, magnet: false }), 2)} A (the losses alone, no output)`);
+out(`      G0 travel at $110: ${fix(estimate({ magnet: false }), 2)} A`);
+out('    Milestone 3, with the magnet wired:');
+out(`      a drag at F${MOTION.dragFeed}, magnet on: ${fix(estimate({ mmPerS: MOTION.dragFeed / 60 }), 2)} A`);
 out(`  magnet: ${MAGNET.volts} V x ${MAGNET.amps} A = ${fix(magnetWatts, 1)} W; coil ${fix(MAGNET.volts / MAGNET.amps, 0)} ohm`);
 // Exposed surface: the side and the back; the face presses on the board top.
 const exposed = Math.PI * MAGNET.diameter * MAGNET.length + (Math.PI / 4) * MAGNET.diameter ** 2; // mm^2
@@ -699,7 +930,6 @@ table([
   ['reset jobs back to back (steady)', `${fix(100 * duty, 0)}%`, fix(magnetWatts * duty, 2), fix(magnetWatts * duty * thermalResistance, 0)],
   [`a game, one move every ${MAGNET.secondsBetweenMoves} s (steady)`, `${fix(100 * gameDuty, 0)}%`, fix(magnetWatts * gameDuty, 2), fix(magnetWatts * gameDuty * thermalResistance, 0)],
 ]);
-const hot = 50;
 const currentWhenHot = 1 / (1 + MAGNET.copperTempco * hot);
 out(`  a coil ${hot} K above room temperature: resistance x ${fix(1 + MAGNET.copperTempco * hot, 2)}, current ${fix(100 * currentWhenHot, 0)}%, pull about ${fix(100 * currentWhenHot ** 2, 0)}% (pull ~ current^2 across a large gap)`);
 

@@ -102,13 +102,61 @@ module pulley() {
   }
 }
 
-// GT2 20T toothed idler, centred on its axis.
+// GT2 20T toothed idler, centred on its axis, with the bore idler_bore picks.
 module idler() {
-  color(c_steel) translate([0, 0, -idler_w / 2]) {
-    cylinder(d = idler_d, h = 1);
-    cylinder(d = pulley_tip_d, h = idler_w);
-    translate([0, 0, idler_w - 1]) cylinder(d = idler_d, h = 1);
+  fl = (idler_w - idler_gap) / 2;   // each flange
+  color(c_steel) translate([0, 0, -idler_w / 2]) difference() {
+    union() {
+      cylinder(d = idler_d, h = fl);
+      cylinder(d = idler_tip_d, h = idler_w);
+      translate([0, 0, idler_w - fl]) cylinder(d = idler_d, h = fl);
+    }
+    translate([0, 0, -1]) cylinder(d = idler_bore, h = idler_w + 2);
   }
+}
+
+// Idler axle hardware (M5 or M3, from idler_bore): a socket head screw with
+// its head at z = 0 (head below) and the shank up to z = len, a hex nut and
+// a flat washer, both from z = 0 up.
+module axle_screw(len) {
+  color(c_dark) {
+    translate([0, 0, -axle_head_h]) cylinder(d = axle_head_d, h = axle_head_h);
+    cylinder(d = axle_d, h = len);
+  }
+}
+module axle_nut() {
+  color(c_steel) difference() {
+    rotate(30) cylinder(d = axle_nut_af / cos(30), h = axle_nut_h, $fn = 6);
+    translate([0, 0, -1]) cylinder(d = axle_d, h = axle_nut_h + 2);
+  }
+}
+module axle_washer() {
+  color(c_steel) difference() {
+    cylinder(d = axle_washer_d, h = axle_washer_t);
+    translate([0, 0, -1]) cylinder(d = axle_d + 0.3, h = axle_washer_t + 2);
+  }
+}
+
+// The X idler on its axle: head on the foot's front face, nut on its back
+// face. Gantry coordinates.
+xi_front = xbelt_y - idler_slot / 2 - idler_cheek;   // foot faces, gantry y
+xi_back = xbelt_y + idler_slot / 2 + idler_cheek;
+module x_idler_axle() {
+  translate([x_idler, xi_front, z_shaft]) rotate([-90, 0, 0]) axle_screw(x_axle_len);
+  translate([x_idler, xi_back, z_shaft]) rotate([-90, 0, 0]) axle_nut();
+  for (s = [-1, 1]) translate([x_idler, xbelt_y + s * (idler_w / 2 + axle_washer_t / 2), z_shaft])
+    rotate([-90, 0, 0]) translate([0, 0, -axle_washer_t / 2]) axle_washer();
+}
+
+// The Y idler's axle in its mount (at the front stop): head on the outboard
+// face, nut pulled against the bottom of its pocket. Machine coordinates.
+yi_x_in = ybelt_x - idler_slot / 2;    // inside faces of the mount's cheeks
+yi_x_out = ybelt_x + idler_slot / 2;
+module y_idler_axle() {
+  translate([yim_out_face, yidler_y, z_shaft]) rotate([0, 90, 0]) axle_screw(y_axle_len);
+  translate([yi_x_in - nut_pocket, yidler_y, z_shaft]) rotate([0, 90, 0]) axle_nut();
+  for (s = [-1, 1]) translate([ybelt_x + s * (idler_w / 2 + axle_washer_t / 2), yidler_y, z_shaft])
+    rotate([0, 90, 0]) translate([0, 0, -axle_washer_t / 2]) axle_washer();
 }
 
 // LM8UU linear bearing centred on its axis (along Z).
@@ -205,6 +253,7 @@ module y_drive_fixed() {
   part_color(c_dark) translate([ybelt_x + 5.5 + ym_plate_t, ymotor_y, z_shaft]) rotate([0, -90, 0]) nema17();
   part_color(c_steel) translate([ybelt_x + pulley_off, ymotor_y, z_shaft]) rotate([0, -90, 0]) pulley();
   part_color(c_steel) translate([ybelt_x, yidler_y, z_shaft]) rotate([0, 90, 0]) idler();
+  part_color(undef) y_idler_axle();
 }
 
 module y_endstop_fixed() {
@@ -271,6 +320,7 @@ module gantry_group() {
     part_color(c_dark) translate([x_pulley, eb_rear_L + mm_plate_t, z_shaft]) rotate([90, 0, 0]) nema17();
     part_color(c_steel) translate([x_pulley, xbelt_y - pulley_off, z_shaft]) rotate([-90, 0, 0]) pulley();
     part_color(c_steel) translate([x_idler, xbelt_y, z_shaft]) rotate([90, 0, 0]) idler();
+    part_color(undef) x_idler_axle();
     for (x = [xL, xR], s = [-1, 1]) part_color(c_steel) translate([x, s * eb_lm_c, z_rod]) rotate([90, 0, 0]) lm8uu();
     part_color(c_steel) for (s = [-1, 1]) translate([rod_x0, s * x_rod_dy, z_rod]) rotate([0, 90, 0]) cylinder(d = rod_d, h = rod_len);
     part_color(undef) multmatrix(xe_matrix) endstop_module();
@@ -404,6 +454,7 @@ module gantry_frame_solid() {
   translate([x_pulley, eb_rear_L + mm_plate_t, z_shaft]) rotate([90, 0, 0]) nema17();
   translate([x_pulley, xbelt_y - pulley_off, z_shaft]) rotate([-90, 0, 0]) pulley();
   translate([x_idler, xbelt_y, z_shaft]) rotate([90, 0, 0]) idler();
+  x_idler_axle();
   multmatrix(xe_matrix) es_solid();
   for (s = [-1, 1]) translate([ybelt_x, s * clamp_len / 2, clamp_bottom]) rotate([0, 0, 90]) belt_clamp();
 }
@@ -434,6 +485,7 @@ module fixed_solid() {
   for (d = [0, yidler_slide]) translate([0, d, 0]) {
     y_idler_mount();
     translate([ybelt_x, yidler_y, z_shaft]) rotate([0, 90, 0]) idler();
+    y_idler_axle();
   }
   multmatrix(ye_matrix) es_solid();
   translate([0, 0, -base_t]) cube([base_w, base_d, base_t]);
@@ -519,9 +571,9 @@ belt_off = max(abs(x_band - xbelt_y), abs(y_band - ybelt_x));
 return_top = z_shaft - (pulley_tip_d / 2 - belt_tooth);  // lower runs, tooth side
 head_bottom = clamp_bottom - m3_head_h;                  // belt clamp screw heads
 echo(str("CHECK belts: pulley tooth bands ", r1(belt_off), " mm off the belt lines with ", r1(band_room),
-  " mm to spare each side of the ", belt_w, " mm belt; idlers ", idler_w - 2, " mm between flanges; return runs (top z ",
+  " mm to spare each side of the ", belt_w, " mm belt; idlers ", idler_gap, " mm between flanges; return runs (top z ",
   r1(return_top), ") ", r1(head_bottom - return_top), " mm below the clamp screw heads: ",
-  (belt_off <= band_room && idler_w - 2 >= belt_w && head_bottom - return_top >= 1) ? "OK" : "FAIL"));
+  (belt_off <= band_room && idler_gap >= belt_w && head_bottom - return_top >= 1) ? "OK" : "FAIL"));
 
 // ---------- Box checks ----------
 // Bounding boxes [[x0, y0, z0], [x1, y1, z1]] of the parts. Gantry parts are
@@ -539,6 +591,11 @@ function nearest(g) = let(m = min([for (x = g) x[0]])) [m, [for (x = g) if (x[0]
 function sep(a, b) = max([for (k = [0 : 2]) max(b[0][k] - a[1][k], a[0][k] - b[1][k])]);
 
 ym_px = ybelt_x + 5.5;   // Y motor mount plate, pulley side
+// Idler axle hardware (see x_idler_axle and y_idler_axle).
+nut_ac = axle_nut_af / cos(30);                          // nut across the corners
+xi_tip = xi_front + x_axle_len;                          // X idler axle's end, gantry y
+xi_head = [[x_idler - axle_head_d / 2, xi_front - axle_head_h, z_shaft - axle_head_d / 2], [x_idler + axle_head_d / 2, xi_front, z_shaft + axle_head_d / 2]];
+yi_tip = yim_out_face + y_axle_len;                      // Y idler axle's end, machine x
 x_sw_box = ["X switch body", es_box(xe_matrix, es_lb_body)];
 y_sw_box = ["Y switch body", es_box(ye_matrix, es_lb_body)];
 gantry_rest = [
@@ -549,8 +606,10 @@ gantry_rest = [
   ["X motor mount lip", [[mm_x0, eb_rear_L - mm_lip[1], z_parts_top], [eb_face_L - 0.5, eb_rear_L + mm_plate_t, z_parts_top + mm_lip[0]]]],
   ["X motor", [[x_pulley - nema_w / 2, eb_rear_L + mm_plate_t, z_shaft - nema_w / 2], [x_pulley + nema_w / 2, eb_rear_L + mm_plate_t + nema_len, z_shaft + nema_w / 2]]],
   ["idler end block", [[eb_face_R, -eb_half, z_flat], [xR + house_hw, eb_half, z_parts_top]]],
-  ["idler foot", [[eb_face_R, xbelt_y - idler_slot / 2 - 4, z_shaft - 6], [x_idler + idler_d / 2 + 3, xbelt_y + idler_slot / 2 + 4, z_flat]]],
+  ["idler foot", [[eb_face_R, xi_front, z_shaft - idler_foot_down], [x_idler + idler_d / 2 + 3, xi_back, z_flat]]],
   ["X idler", [[x_idler - idler_d / 2, xbelt_y - idler_w / 2, z_shaft - idler_d / 2], [x_idler + idler_d / 2, xbelt_y + idler_w / 2, z_shaft + idler_d / 2]]],
+  ["X idler axle head", xi_head],
+  ["X idler axle nut and end", [[x_idler - nut_ac / 2, xi_back, z_shaft - nut_ac / 2], [x_idler + nut_ac / 2, max(xi_tip, xi_back + axle_nut_h), z_shaft + nut_ac / 2]]],
   ["X endstop bracket", [[eb_face_R - es_x_plate, xe_br_y[0], es_x_z0], [eb_face_R, xe_br_y[1], z_parts_top]]],
   ["X endstop bracket block", [[eb_face_R, es_x_y0 - 1, es_x_z0], [eb_face_R + xe_br_back, es_x_y0 + es_pcb[1] + 1, z_flat - 0.5]]],
   ["X endstop PCB", es_box(xe_matrix, [[0, 0, 0], es_pcb])],
@@ -570,7 +629,7 @@ ym_plate = [[ym_px, ymotor_y - 24, 0], [ym_px + ym_plate_t, ymotor_y + 24, z_sha
 ym_feet = [[ym_px - 28, ymotor_y - 6, 0], [ym_px + 45, ymotor_y + 34, flange_t]];
 // The Y idler mount anywhere along its tensioning slide.
 yi_base = [[yim_x0, yidler_y - 20, 0], [yim_x1, yidler_y + 11 + yidler_slide, flange_t]];
-yi_cheeks = [[ybelt_x - idler_slot / 2 - 4, yidler_y - 9, 0], [ybelt_x + idler_slot / 2 + 4, yidler_y + 9 + yidler_slide, z_shaft + 6]];
+yi_cheeks = [[yim_out_face, yidler_y - yim_cheek_hw, 0], [yim_in_face, yidler_y + yim_cheek_hw + yidler_slide, z_shaft + yim_cheek_up]];
 ye_post = [[ye_pcb_x - 1, ye_y0, 0], [ye_pcb_x + es_pcb[1] + 1.5, ye_y0 + 21, ye_pcb_z + es_pcb[0] + 1]];
 ye_foot = [[ye_foot_x0, ye_y0, 0], [ye_pcb_x + es_pcb[1] + 1.5, ye_y0 + 24, flange_t]];
 fixed_rest = [
@@ -586,6 +645,9 @@ fixed_rest = [
   ["Y idler mount", yi_base],
   ["Y idler cheeks", yi_cheeks],
   ["Y idler", [[ybelt_x - idler_w / 2, yidler_y - idler_d / 2, z_shaft - idler_d / 2], [ybelt_x + idler_w / 2, yidler_y + idler_d / 2 + yidler_slide, z_shaft + idler_d / 2]]],
+  ["Y idler axle head", [[yim_out_face - axle_head_h, yidler_y - axle_head_d / 2, z_shaft - axle_head_d / 2], [yim_out_face, yidler_y + axle_head_d / 2 + yidler_slide, z_shaft + axle_head_d / 2]]],
+  // empty unless the axle sticks out of the inboard cheek, into the X motor's path
+  ["Y idler axle end", [[yim_in_face, yidler_y - axle_d / 2, z_shaft - axle_d / 2], [max(yim_in_face, yi_tip), yidler_y + axle_d / 2 + yidler_slide, z_shaft + axle_d / 2]]],
   ["Y endstop post", ye_post],
   ["Y endstop foot", ye_foot],
   ["Y endstop PCB", es_box(ye_matrix, [[0, 0, 0], es_pcb])],
@@ -640,6 +702,50 @@ fixed_pairs = [
 fixed_min = min([for (p = fixed_pairs) p[1]]);
 echo(str("CHECK fixed parts: ", [for (p = fixed_pairs) str(p[0], " ", r1(p[1]), " mm")], ": ", fixed_min >= 1 ? "OK" : "FAIL"));
 
+// Idler axles: the screw, nut and washer sizes that idler_bore picks against
+// the holes, the slot, the nut pocket and the parts around them. Nuts are
+// taken at the thickest the standards allow (axle_nut_h) and idlers at the
+// widest the slots are drawn for (idler_w_max), so thinner and narrower
+// ones only leave more room. The X axle's end may stand out behind its foot:
+// it is in the box tests with the nut, so they show if it hits anything.
+hole_play = axle_clear - axle_d;
+slot_play = idler_slot - idler_w_max - 2 * axle_washer_t;   // with the widest idler
+x_past_nut = xi_tip - (xi_back + axle_nut_h);          // thread showing past the X idler's nut
+function named(list, n) = [for (b = list) if (b[0] == n) b[1]][0];
+xe_parts = [for (n = ["X endstop bracket", "X endstop bracket block", "X endstop PCB", "X endstop connector and plug", "X switch body"]) named(gantry_boxes, n)];
+x_head_gap = min([for (b = xe_parts) sep(xi_head, b)]);  // X axle head to the X endstop and its bracket
+y_in_cheek = yi_tip - yi_x_out;                          // how far the Y axle goes into the inboard cheek
+pocket_r = nut_pocket_d / 2;                              // Y nut pocket, centre to corner
+roof = 1.15 * axle_clear / 2;                             // teardrop roof of an axle hole, above its axis
+plastic = [
+  ["skin under the Y axle head", yim_skin],
+  ["over the Y nut pocket", yim_cheek_up - pocket_r * cos(30)],
+  ["beside the Y nut pocket", yim_cheek_hw - pocket_r],
+  ["over the Y axle hole", yim_cheek_up - roof],
+  ["under the X axle hole", idler_foot_down - roof]
+];
+plastic_min = min([for (p = plastic) p[1]]);
+driver_gap = (yim_out_face - axle_head_h) - (yim_slot_x + driver_d / 2);
+axle_name = str("M", axle_d);
+axle_faults = [for (c = [
+  [hole_play >= 0.2 && hole_play <= 1, "hole does not suit the screw"],
+  [idler_w <= idler_w_max, "drawn idler wider than idler_w_max"],
+  [slot_play >= 0.3 && slot_play <= 1, "slot does not suit the idler and washers"],
+  [x_past_nut >= 1, "X axle too short for its nut"],
+  [x_head_gap >= 1, "X axle head too close to the X endstop"],
+  [y_in_cheek >= 1, "Y axle too short to reach the inboard cheek"],
+  [yi_tip <= yim_in_face, "Y axle sticks out into the X motor's path"],
+  [driver_gap >= 0.5, "Y axle head in the way of the wood screws"],
+  [plastic_min >= 1.5, "too little plastic round a hole or the nut pocket"]]) if (!c[0]) c[1]];
+echo(str("CHECK idler axles (idler_bore = ", idler_bore, ", ", axle_name, "): holes ", axle_clear, " mm; slot ", r1(idler_slot), " mm = idler up to ", idler_w_max,
+  " (", idler_w, " drawn) + two ", axle_washer_t, " mm washers + ", r1(slot_play), " mm play; nut pocket for a nut up to ", axle_nut_h, " mm thick. X: ", axle_name, " x ", x_axle_len,
+  " ends ", r1(x_past_nut), " mm past a ", axle_nut_h, " mm nut, ",
+  xi_tip == eb_half ? "flush with" : str(r1(abs(eb_half - xi_tip)), xi_tip < eb_half ? " mm inside" : " mm behind"), " the end block's back face, head ", r1(x_head_gap), " mm from the X endstop parts. Y: ",
+  axle_name, " x ", y_axle_len, " ends ", r1(y_in_cheek), " mm into the ", r1(yim_in_face - yi_x_out), " mm inboard cheek (", r1(yim_in_face - yi_tip),
+  " mm short of the face the X motor passes), head ", r1(driver_gap), " mm from a ", driver_d, " mm driver on the wood screws. Thinnest plastic ",
+  r1(plastic_min), " mm (", [for (p = plastic) if (p[1] == plastic_min) p[0]][0], "): ",
+  len(axle_faults) == 0 ? "OK" : str("FAIL ", axle_faults)));
+
 echo(str("SIZE footprint ", base_w + 2 * wall_t, " x ", base_d + 2 * wall_t, " mm; height ", base_t + z_board + top_t,
   " mm to the playing surface (", base_t + z_board + top_t + 31.5, " mm to the top of a king)"));
 echo(str("SIZE printed sheet corner at machine (", r1(sheet_x0), ", ", r1(sheet_y0), "), ", r1(sheet_x0 + wall_t), " mm from the top's left edge and ",
@@ -649,3 +755,5 @@ echo(str("SIZE belt loops (pitch line, before clamping): X ", round(2 * (x_idler
 echo(str("SIZE X motor: body ", nema_len, " mm long as drawn; at the Y switch's hard stop its back is ",
   r1(base_d - (y_home + es_trigger - es_body + eb_rear_L + mm_plate_t + nema_len)), " mm from the back wall, so a body up to ",
   floor(base_d - 1 - (y_home + es_trigger - es_body + eb_rear_L + mm_plate_t)), " mm long fits; it runs ", r1(z_shaft - nema_w / 2), " mm above the base"));
+echo(str("SIZE idler axles (idler_bore = ", idler_bore, "): X idler ", axle_name, " x ", x_axle_len, ", Y idler ", axle_name, " x ", y_axle_len,
+  " (socket head), 2 ", axle_name, " nuts up to ", axle_nut_h, " mm thick, 4 ", axle_name, " washers ", axle_washer_t, " mm thick"));

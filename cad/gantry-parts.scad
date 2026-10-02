@@ -12,6 +12,8 @@
 // x-motor-mount, carriage, y-motor-mount, y-idler-mount, belt-clamp (print 4),
 // x-endstop-mount, y-endstop-mount.
 // PLA, 0.2 mm layers, 4 perimeters, 30% infill; no supports needed.
+// idler_bore in params.scad picks the idlers (5 mm bore on M5 axles, or 3 mm
+// on M3); it changes end-block-idler and y-idler-mount only.
 
 include <params.scad>
 
@@ -131,6 +133,10 @@ module end_block_motor() {
 // Right end block: rides the right Y rod, holds the right ends of both X
 // rods and the X idler (in a slot underneath). The X endstop bracket screws
 // to its inner face. Machine X, gantry Y. Printed upside down.
+// The idler axle (M5 x 30 or M3 x 25, see idler_bore in params.scad) goes in
+// from the front with its head on the foot's front face, through a washer,
+// the idler and a washer, and takes a nut on the back face. An M5 x 30 ends
+// about 4 mm behind the end block's back face, under the block.
 module end_block_idler() {
   sock_x1 = xR - house_hw;
   foot_x1 = x_idler + idler_d / 2 + 3;
@@ -139,7 +145,8 @@ module end_block_idler() {
       translate([xR - house_hw, -eb_half, z_flat]) cube([2 * house_hw, 2 * eb_half, z_parts_top - z_flat]);
       translate([eb_face_R, -eb_half, z_flat]) cube([sock_x1 - eb_face_R + eps, 2 * eb_half, z_parts_top - z_flat]);
       // foot under the block that carries the idler axle
-      translate([eb_face_R, xbelt_y - idler_slot / 2 - 4, z_shaft - 6]) cube([foot_x1 - eb_face_R, idler_slot + 8, z_flat - z_shaft + 6 + eps]);
+      translate([eb_face_R, xbelt_y - idler_slot / 2 - idler_cheek, z_shaft - idler_foot_down])
+        cube([foot_x1 - eb_face_R, idler_slot + 2 * idler_cheek, z_flat - z_shaft + idler_foot_down + eps]);
     }
     y_bearing_bores(xR);
     for (s = [-1, 1]) {
@@ -152,8 +159,8 @@ module end_block_idler() {
     // idler slot, open toward the carriage and underneath
     translate([eb_face_R - 1, xbelt_y - idler_slot / 2, z_shaft - idler_d / 2 - 8])
       cube([x_idler + idler_d / 2 + 1.5 - eb_face_R + 1, idler_slot, idler_d + 8 + 1.25]);
-    // idler axle: M3 x 25 along Y with a nut
-    translate([x_idler, xbelt_y, z_shaft]) cyl_y(m3_clear, idler_slot + 20);
+    // idler axle along Y; its roof points down (-Z), which is up on the bed
+    translate([x_idler, xbelt_y, z_shaft]) hole_y(axle_clear, idler_slot + 2 * idler_cheek + 2, -1);
   }
 }
 
@@ -239,18 +246,25 @@ module y_motor_mount() {
 // slots let it slide back up to yidler_slide (6 mm) to tension the belt
 // before the wood screws are tightened; the back-left rod holder is 1 mm
 // behind it at the end of that travel. Both screws sit outboard of the Y rod.
-// Printed upright.
+// The X motor passes 1.35 mm from the inboard cheek, so nothing may stick out
+// of that side. The axle (M5 x 20 or M3 x 18, see idler_bore in params.scad)
+// goes in from the outboard side: through the outboard cheek and a nut that
+// sits in a pocket on the cheek's inner face, then a washer, the idler and a
+// washer, and ends inside the inboard cheek. Tightening it clamps the
+// outboard cheek between the screw head and the nut. Printed upright.
 module y_idler_mount() {
   x_in = ybelt_x - idler_slot / 2;   // inside faces of the cheeks
   x_out = ybelt_x + idler_slot / 2;
   difference() {
     union() {
       translate([yim_x0, yidler_y - 20, 0]) cube([yim_x1 - yim_x0, 31, flange_t]);
-      for (x = [x_in - 4, x_out]) translate([x, yidler_y - 9, 0]) cube([4, 18, z_shaft + 6]);
+      translate([yim_out_face, yidler_y - yim_cheek_hw, 0]) cube([x_in - yim_out_face, 2 * yim_cheek_hw, z_shaft + yim_cheek_up]);
+      translate([x_out, yidler_y - yim_cheek_hw, 0]) cube([yim_in_face - x_out, 2 * yim_cheek_hw, z_shaft + yim_cheek_up]);
     }
-    // axle: M3 x 18 from the outboard side into a nut sunk in the inboard cheek
-    translate([x_in - 5, yidler_y, z_shaft]) rotate([0, 90, 0]) cylinder(d = m3_clear, h = idler_slot + 10);
-    translate([x_out - eps, yidler_y, z_shaft]) rotate([0, 90, 0]) rotate([0, 0, 30]) cylinder(d = m3_nut_af / cos(30) + 0.3, h = m3_nut_h + 0.4, $fn = 6);
+    // axle hole through both cheeks, and the nut pocket (a flat on top)
+    translate([(yim_out_face + yim_in_face) / 2, yidler_y, z_shaft]) hole_x(axle_clear, yim_in_face - yim_out_face + 2, 1);
+    translate([x_in + eps, yidler_y, z_shaft]) rotate([0, -90, 0]) rotate([0, 0, 30])
+      cylinder(d = nut_pocket_d, h = nut_pocket + eps, $fn = 6);
     // both screws outboard of the rod and the belt, so you can reach them to re-tension it
     for (y = [yidler_y - 12, yidler_y + 4]) translate([yim_slot_x, y, 0]) wood_slot_y(yidler_slide, flange_t);
   }

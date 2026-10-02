@@ -28,7 +28,7 @@ first physical build.
 | CAD: board sheet, layout drawing, pieces | ✅ [cad/](cad) |
 | CAD: gantry, carriage and full assembly, printable STLs | ✅ [cad/README.md](cad/README.md) |
 | Wiring schematic | ✅ [docs/img/wiring.svg](docs/img/wiring.svg) |
-| Parts list, every price checked on 2026-10-01 | ⚠️ [docs/BOM.md](docs/BOM.md): $116.38 with tax, $16.38 over the $100 budget |
+| Parts list, every price checked on 2026-10-01 | ✅ [docs/BOM.md](docs/BOM.md): $98.36 with tax, under the $100 budget, plus optional add-backs |
 | Physical build | Next: [ROADMAP.md](ROADMAP.md) milestones 1–3 |
 
 ## What makes it different

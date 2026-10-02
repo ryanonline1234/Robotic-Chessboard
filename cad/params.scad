@@ -73,9 +73,47 @@ pulley_len = 16;
 pulley_hub_len = 7;    // estimate
 pulley_teeth_len = 9;  // toothed part, flanges included, estimate
 pulley_off = 4.5;      // pulley end (flange) to the belt line, along the shaft
-idler_d = 18;          // flange diameter of a 20T toothed idler, 3 mm bore
-idler_w = 8.5;
-idler_slot = idler_w + 1.5; // room for the idler plus an M3 washer
+// 20T toothed idler, the same outside size with a 3 mm or a 5 mm bore. Drawn
+// from one seller's drawing of the 5 mm one; Motedis lists a 20T 5 mm-bore
+// idler as 18 mm across and 9 mm long, so the slots are sized for idler_w_max.
+// Measure yours: if it is wider than idler_w_max, set both widths to it and
+// run the checks (cad/README.md, Hardware).
+idler_d = 18;          // across the flanges
+idler_w = 8.5;         // overall width, as drawn
+idler_w_max = 9;       // the widest idler the slots take
+idler_gap = 6.5;       // between the flanges
+idler_tip_d = 12.2;    // across the teeth
+
+// ---------- Idler axles ----------
+// Which idlers the build uses, and so the screws they turn on:
+//   5 = the two 20T idlers that come in the GT2 belt kit (5 mm bore), on M5
+//       axles. The funded build and the default.
+//   3 = separate 20T idlers with a 3 mm bore (an optional add-back), on M3
+//       axles.
+// Only end-block-idler and y-idler-mount change. Export them with
+// -D idler_bore=3 ("Using 3 mm idlers" in cad/README.md has the commands).
+idler_bore = 5;
+assert(idler_bore == 5 || idler_bore == 3,
+  str("idler_bore must be 5 (the belt kit's idlers, M5 axles) or 3 (separate 3 mm-bore idlers, M3 axles), not ", idler_bore));
+axle_m5 = idler_bore == 5;
+axle_d = idler_bore;                       // screw: M5 or M3
+axle_clear = axle_m5 ? 5.5 : m3_clear;     // clearance hole
+// Hex nut across flats, and the thickest nut the parts are drawn for: ISO 4032
+// allows M5 nuts 4.4-4.7 mm thick and M3 nuts 2.15-2.4 mm; the older DIN 934
+// M5 nut is 3.7-4 mm (fasten.it's tables for both standards).
+axle_nut_af = axle_m5 ? 8 : m3_nut_af;
+axle_nut_h = axle_m5 ? 4.7 : m3_nut_h;
+axle_washer_t = axle_m5 ? 1 : 0.5;         // flat washer (DIN 125), one each side of each idler
+axle_washer_d = axle_m5 ? 10 : 7;
+axle_head_d = axle_m5 ? 8.5 : m3_head_d;   // socket head cap screw (ISO 4762)
+axle_head_h = axle_m5 ? 5 : m3_head_h;
+x_axle_len = axle_m5 ? 30 : 25;            // X idler: M5 x 30 or M3 x 25, nut on the back face
+y_axle_len = axle_m5 ? 20 : 18;            // Y idler: M5 x 20 or M3 x 18, nut in a pocket
+nut_pocket = axle_nut_h + 0.4;             // the Y idler mount's nut pocket: depth ...
+nut_pocket_d = axle_nut_af / cos(30) + 0.3; // ... and size across the corners
+idler_slot = idler_w_max + 2 * axle_washer_t + 0.5; // the widest idler, a washer each side and 0.5 mm play
+idler_cheek = 4;       // each cheek of the foot that carries the X idler
+idler_foot_down = 6;   // that foot reaches this far below the X idler's axle
 
 // ---------- Electromagnet (P20/15) and its spring ----------
 mag_d = 20;
@@ -140,7 +178,14 @@ mm_x0 = xL + house_hw + 0.5;   // X motor mount plate, left edge (clears the bea
 mm_x1 = x_pulley + 23;         // ... right edge
 yim_x0 = 7;                    // Y idler mount base, outboard edge ...
 yim_x1 = mm_x0 - 1;            // ... inboard edge: 1 mm short of the X motor mount passing over it
-yim_slot_x = 14;               // its wood-screw slots, outboard of the Y rod
+yim_slot_x = 12;               // its wood-screw slots, outboard of the Y rod and the idler's axle head
+yim_in_face = ybelt_x + 9;     // its inboard face: the X motor passes 1.35 mm from it, so nothing may stick out
+yim_skin = 2;                  // plastic between the Y idler's nut pocket and the outboard face
+yim_out_face = ybelt_x - idler_slot / 2 - nut_pocket - yim_skin; // outboard face, where the axle's head sits
+yim_cheek_up = 6;              // its cheeks reach this far above the idler's axle ...
+yim_cheek_hw = 9;              // ... and this far each side of it along Y
+driver_d = 7.3;                // widest screwdriver at its wood screws: a 1/4-inch hex bit across the corners (estimate).
+                               // A bit holder is wider, so the README says to use a screwdriver or a long bit there.
 mm_screw_x = [48, 64];         // two M3 screws hold the X motor mount to the end block
 mm_screw_z = 50;               // above the motor body
 mm_lip = [2, 5];               // lip on the X motor mount over the end block: thickness, reach

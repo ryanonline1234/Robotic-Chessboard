@@ -115,7 +115,7 @@
 <circle cx="960" cy="820" r="3.6" fill="#fff" stroke="#1f2937" stroke-width="1.5"/>
 <text x="40" y="42" font-size="24" font-weight="700" text-anchor="start" fill="#1f2937">Robotic Chessboard v1: wiring schematic</text>
 <text x="40" y="66" font-size="13" font-weight="400" text-anchor="start" fill="#5b6472">Arduino Uno + CNC Shield V3 running GRBL 1.1, two NEMA 17 steppers, a 12 V electromagnet. 12 V DC only. Drawn by cad/make-wiring.js.</text>
-<text x="180" y="232" font-size="14" font-weight="700" text-anchor="middle" fill="#1f2937">12 V 5 A power supply</text>
+<text x="180" y="232" font-size="14" font-weight="700" text-anchor="middle" fill="#1f2937">12 V 3 A (or 5 A) supply</text>
 <text x="180" y="250" font-size="12" font-weight="400" text-anchor="middle" fill="#5b6472">enclosed adapter, DC output</text>
 <text x="180" y="269" font-size="12" font-weight="400" text-anchor="middle" fill="#5b6472">plug cut off? find +V with a meter</text>
 <text x="240" y="208" font-size="12" font-weight="700" text-anchor="middle" fill="#1f2937">+V</text>

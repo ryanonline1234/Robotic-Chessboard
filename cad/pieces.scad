@@ -3,7 +3,8 @@
 // The base is 19 mm across: 0.475 of a 40 mm square, so pieces slide
 // between each other and the planner never has to move a blocker.
 // Glue a steel M8 washer (16 mm across, 1.6 mm thick) into the pocket under
-// each base for the electromagnet to grab, then cover it with a felt pad.
+// each base for the electromagnet to grab. A felt pad over it is optional
+// (the funded build has none; see docs/BOM.md).
 //
 // Export one piece:  openscad -D 'piece="knight"' -o knight.stl pieces.scad
 // Preview all six:   leave piece = "set"

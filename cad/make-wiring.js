@@ -155,7 +155,7 @@ text(40, 66, 'Arduino Uno + CNC Shield V3 running GRBL 1.1, two NEMA 17 steppers
 // ---------------------------------------------------------------- supply, fuse and power wiring
 
 box(PSU.x, PSU.y, PSU.w, PSU.h);
-text(180, 232, '12 V 5 A power supply', { size: 14, weight: 700, anchor: 'middle' });
+text(180, 232, '12 V 3 A (or 5 A) supply', { size: 14, weight: 700, anchor: 'middle' });
 text(180, 250, 'enclosed adapter, DC output', { size: 12, anchor: 'middle', fill: COLOR.muted });
 text(180, 269, 'plug cut off? find +V with a meter', { size: 12, anchor: 'middle', fill: COLOR.muted });
 text(PSU_PLUS_X, PSU.y + 18, '+V', { size: 12, weight: 700, anchor: 'middle' });

@@ -10,12 +10,12 @@ lives in `params.scad`.
 
 | File | What it is |
 |---|---|
-| `params.scad` | Every shared dimension: grid, rods, bearings, motor, belt, magnet, clearances, heights, layout, travel limits |
+| `params.scad` | Every shared dimension: grid, rods, bearings, motor, belt, idlers and their axles (`idler_bore`), magnet, clearances, heights, layout, travel limits |
 | `gantry-parts.scad` | The ten printed gantry parts, one module each. `part="name"` exports one in its print orientation; `part="all"` lays them all out |
 | `assembly.scad` | The whole machine with stand-ins for the bought parts, a section view, a top view, and `echo()` checks for reach, clearances and interference |
-| `export.sh` | Writes every STL to `stl/`, renders the four pictures in `docs/img/` and prints the checks. Fails if a check fails |
+| `export.sh` | Writes every STL to `stl/`, renders the four pictures in `docs/img/` and prints the checks. Fails if a check fails. `IDLER_BORE=3` builds the 3 mm idler version ([below](#using-3-mm-idlers)) |
 | `stl/` | The exported parts, ready to slice |
-| `pieces.scad` | The six chess pieces with a pocket for the steel washer |
+| `pieces.scad` | The six chess pieces with a pocket for the steel washer. Its header says to cover the washer with a felt pad; the funded build has no felt (an optional add-back), so the pieces slide on their bare PLA bases |
 | `make-board.js` | Draws `board-sheet.svg` (print at 100% and glue on the top) and `board-layout.svg` (the same with dimensions) |
 | `make-wiring.js` | Draws the wiring schematic (see its header) |
 
@@ -104,10 +104,24 @@ on top of this.
 
 Bought parts from [docs/BOM.md](../docs/BOM.md) that the CAD uses: four 8 x 500
 mm rods (uncut), eight of the ten LM8UU (four in the end blocks, four in the
-carriage), two NEMA 17 motors, two 20T pulleys, two of the four 20T idlers,
-the P20/15 magnet, two mechanical endstop modules and the PTFE tape for the
-magnet face. Belt: about 1.0 m for X
-and 0.95 m for Y, out of the 5 m roll.
+carriage), two NEMA 17 motors, the belt kit's two 20T pulleys and its two 20T
+toothed idlers (5 mm bore, on M5 axles), the P20/15 magnet, two mechanical
+endstop modules and the PTFE tape for the magnet face. Belt: about 1.0 m for X
+and 0.95 m for Y, out of the 5 m roll. Separate 3 mm-bore idlers are an
+optional add-back; see [Using 3 mm idlers](#using-3-mm-idlers).
+
+The idlers are drawn 18 mm across the flanges, 8.5 mm wide, 6.5 mm between
+the flanges and 12.2 mm across the teeth, from one seller's drawing of a
+5 mm-bore 20T idler. Motedis lists a 20T 5 mm-bore idler as 9 mm long, so
+the slots take idlers up to 9 mm wide (`idler_w_max`). The nut pocket takes
+the thickest nut ISO 4032 allows (4.7 mm for M5). Measure your idlers before
+printing the idler end block and the Y idler mount. If one is wider than
+9 mm, set `idler_w` and `idler_w_max` (and `idler_gap`) in `params.scad` to
+what you measure and run the checks: `bash cad/export.sh`, or
+`openscad -o checks.echo cad/assembly.scad` and look for FAIL in
+`checks.echo`. If the idler axles check then fails, it names what no longer
+fits; change the screw lengths (`x_axle_len`, `y_axle_len`) to suit, and buy
+the screws its `SIZE idler axles` line prints.
 
 The X motor must be no longer than 51 mm (the CAD draws a 48 mm body). A
 longer one, such as a 60 mm high-torque NEMA 17, hits the back wall before
@@ -129,15 +143,20 @@ Not in the BOM, needed for the build:
 | M3 x 16 socket screws | 2 | X motor mount to the motor end block |
 | M3 x 12 socket screws | 2 | X endstop PCB to its bracket |
 | M3 x 6 socket screws | 2 | Y endstop PCB to its post |
-| M3 x 25 socket screws | 2 | Magnet guide screw; X idler axle |
-| M3 x 18 socket screw | 1 | Y idler axle |
-| M3 nuts, M3 washers | 2, 4 | Idler axles (a washer each side of each idler) |
+| M3 x 25 socket screw | 1 | Magnet guide screw |
+| M5 x 30 socket screw | 1 | X idler axle: in from the front of the foot under the idler end block, nut on the back face. Its end stands about 4 mm out behind the end block, under it |
+| M5 x 20 socket screw | 1 | Y idler axle: in from the outboard side of the Y idler mount, nut in the pocket in the thick cheek. Not longer: a longer screw sticks out into the X motor's path |
+| M5 nuts (8 mm across flats, up to 4.7 mm thick: DIN 934 or ISO 4032), M5 washers (10 mm across, 1 mm thick) | 2, 4 | Idler axles (a washer each side of each idler) |
 | Wood screws, 3.5-4 mm, about 16 mm long | 19 | 8 for the holders, 3 Y motor mount, 2 Y idler mount and 2 Y endstop post (pan head + washer, in slots), 4 for the top's corners; more for the walls |
 | Compression spring | 1 | About 20 mm long, 5-7 mm across, fits over an M3 screw (inside 3.5 mm or more), light: 0.1-0.3 N/mm |
 | 12 mm plywood or MDF strips | 2 + 2 | Walls: 624 and 500 mm long, 61 mm plus your base's thickness tall (73 mm for a base of exactly 12 mm) |
 | 3 mm hardboard, smooth on both sides (S2S), or 3 mm MDF | 1 | Top, 624 x 524 mm |
 
 The M3 screws in the printed parts cut their own thread in 2.9 mm pilot holes.
+The idler axles go through 5.5 mm holes and take nuts. With 3 mm idlers, use
+an M3 x 25 and an M3 x 18 socket screw, 2 M3 nuts and 4 M3 washers instead
+of the M5 parts (so 2 M3 x 25 in all, with the guide screw). The M3 x 18 goes
+in the Y idler mount; not longer, for the same reason as the M5 x 20.
 
 ## Assembly
 
@@ -165,8 +184,12 @@ The M3 screws in the printed parts cut their own thread in 2.9 mm pilot holes.
    screws, which end up 1.5 mm below the top of the block. Hang the X motor
    mount on the back of the motor end block with its lip on top of the block,
    and fix it with two M3 x 16 from behind, above the motor. Put the X idler
-   with a washer each side in the slot under the idler end block, on an M3 x 25
-   with a nut.
+   with a washer each side in the slot under the idler end block and push the
+   M5 x 30 (M3 x 25 for 3 mm idlers) through from the front; the nut goes on
+   the back face. Tighten the nut only until the cheeks touch the washers;
+   the idler must still spin freely. If it drags, back the nut off, or use
+   washers that touch only the bearing's inner ring. Do this before step 8:
+   the X endstop bracket sits in front of the screw head.
 5. **Y rods.** Stand the gantry on the base. Slide each Y rod in from outside
    through a holder, through the end block's bearings and into the far holder,
    flush with both outer faces, and lock it with the grub screws. Holders go at
@@ -175,11 +198,21 @@ The M3 screws in the printed parts cut their own thread in 2.9 mm pilot holes.
    end to end; the rods must be 540 mm apart at both ends.
 6. **Y drive.** Screw the Y motor mount down at the front left (plate face at
    x = 40, front edge at y = 4); all three of its screws are clear of the Y
-   rod. Put the Y idler mount at the back left as far forward as it goes, with
-   its axle at x = 34.5, y = 464 and each wood screw at the back end of its
-   slot, so the mount can slide back. Clamp one end of the Y belt under the
-   motor end block, take it forward round the Y pulley, back along the bottom,
-   round the idler and forward to the second clamp. Pull the belt tight
+   rod. Fit the Y idler in its mount first: drop the nut into the hexagonal
+   pocket on the inside of the thick (outboard) cheek, stand a washer, the
+   idler and a washer between the cheeks, and screw the M5 x 20 (M3 x 18 for
+   3 mm idlers) in from outside through the cheek, the nut, the washers and
+   the idler. It ends inside the thin cheek, so nothing sticks out on the
+   side the X motor passes. Tighten it snugly: the head and the nut clamp the
+   thick cheek. Put the Y idler mount at the back left as far forward as it
+   goes, with its axle at x = 34.5, y = 464 and each wood screw at the back end
+   of its slot, so the mount can slide back. Drive its two wood screws with a
+   screwdriver, or with a bit long enough that its holder stays more than
+   25 mm above the mount's base (level with the top of the cheeks): the axle
+   head is 1 mm from the bit's path, and a bit holder is wider than the bit.
+   Clamp one end of the Y belt under the motor end block, take it forward
+   round the Y pulley, back along the bottom, round the idler and forward to
+   the second clamp. Pull the belt tight
    through that clamp with pliers and tighten it. Then slide the idler mount
    back (up to 6 mm) to finish tensioning and tighten its screws. Push the
    gantry all the way back by hand: the X motor passes 1.4 mm from the idler
@@ -216,6 +249,7 @@ The M3 screws in the printed parts cut their own thread in 2.9 mm pilot holes.
 | Rod holes (holders, end blocks) | 8.2 mm, locked with M3 grub screws; X rods 25.5 mm deep in each end block, two grub screws each |
 | LM8UU bores | 15.2 mm press fit, 9.5 mm shoulder between the two bearings |
 | M3 clearance / self-tapping pilot | 3.4 mm / 2.9 mm |
+| Idler axles | 5.5 mm holes for M5 (3.4 mm for M3); slot 11.5 mm for an idler up to 9 mm wide (8.5 mm drawn) and two 1 mm washers (10.5 mm with M3 washers); nut pocket for a nut up to 4.7 mm thick. X: the M5 x 30 ends 5.8 mm past a 4.7 mm nut and 4.3 mm behind the end block's back face, its head 1.3 mm from the X endstop bracket. Y: the M5 x 20 ends 1.4 mm into the 3.3 mm inboard cheek, 1.9 mm short of the face the X motor passes; its head is 1 mm from a 7.3 mm screwdriver bit on the wood screws (so drive them with a screwdriver or a long bit, step 6). At least 1.9 mm of plastic round every axle hole and the nut pocket |
 | Belt clamp pilots | 5 mm deep (an M3 x 10 goes in 4.6 mm); about 1 mm of plastic to the bearing bores in the carriage and to the shoulder bore in the motor end block |
 | NEMA 17 | 31 mm M3 square, 22.6 mm hole for the 22 mm boss |
 | Belts | Pulley and idler axles all at z = 24.25; upper runs at z = 30.4-31.0 on the flat undersides; return runs at z = 17.5-18.9, 3.7 mm below the clamp screw heads |
@@ -250,7 +284,18 @@ says FAIL):
 - a bounding-box test finds no overlap between moving and fixed parts at the
   four corners of travel;
 - fixed parts that sit close to each other (motor mount and holders, the idler
-  mount slid fully back, the Y endstop post) stay at least 1 mm apart.
+  mount slid fully back, the Y endstop post) stay at least 1 mm apart;
+- the idler axles (M5 or M3, from `idler_bore`), with each nut as thick as
+  ISO 4032 allows and each idler as wide as the slots are drawn for, so
+  thinner nuts and narrower idlers only leave more room: each hole suits its
+  screw, the slots take an idler and two washers, the X axle reaches at least
+  1 mm past its nut and its head clears the X endstop, the Y axle reaches
+  1 mm or more into the inboard cheek but not out of its face (the X motor
+  passes there), the Y axle's head leaves room for a screwdriver on the wood
+  screws, and at least 1.5 mm of plastic is left round the holes and the nut
+  pocket. The screw heads, the nuts and the X axle's end are also in the
+  interference tests. A wrong screw length or nut size in `params.scad` makes
+  it say FAIL, for example `-D x_axle_len=20` or `-D axle_nut_h=6`.
 
 The exact interference test renders only the overlaps, at the four corners:
 
@@ -264,6 +309,32 @@ test can fail, push the gantry 6 mm past its front stop with
 minutes.
 
 Cables are not modelled, so none of these checks cover them.
+
+## Using 3 mm idlers
+
+The funded build uses the belt kit's two 5 mm-bore idlers on M5 axles. Separate
+20T idlers with a 3 mm bore, on M3 axles, are an optional add-back. They have
+the same outside size, so only two parts change: `end-block-idler` and
+`y-idler-mount`. From the repo's top folder, export those two for M3 axles
+and run the checks for that build:
+
+```bash
+openscad -D idler_bore=3 -D 'part="end-block-idler"' -o end-block-idler-m3.stl cad/gantry-parts.scad
+openscad -D idler_bore=3 -D 'part="y-idler-mount"' -o y-idler-mount-m3.stl cad/gantry-parts.scad
+openscad -D idler_bore=3 -o checks-m3.echo cad/assembly.scad
+```
+
+The two STLs come out in their print orientation, like the ones in `stl/`.
+Every CHECK line in `checks-m3.echo` should end in OK, and its
+`SIZE idler axles` line lists the M3 screws. The hardware for this option is
+under [Hardware](#hardware).
+
+`IDLER_BORE=3 bash cad/export.sh` does the whole export for the 3 mm build
+instead: it passes `-D idler_bore=3` to every OpenSCAD run and stops if a
+check fails. It overwrites all of `cad/stl/` and the pictures in `docs/img/`,
+which in the repo are the 5 mm build; `git checkout cad/stl docs/img` puts
+them back. Setting `idler_bore = 3` in `params.scad` switches every command
+to the 3 mm build.
 
 ## Notes for the firmware and software
 
@@ -299,6 +370,10 @@ Cables are not modelled, so none of these checks cover them.
   which the 10 mm margins and the calibration absorb; the Y post can also
   slide to put it back.
 - Pulley hub and tooth lengths are typical values, not measured.
+- The idlers' size is one seller's drawing, and the belt kit's idlers were
+  not seen; measure them. The slots take idlers up to 9 mm wide; see
+  [Hardware](#hardware) for a wider one. Whether a 10 mm M5 washer touches
+  only the idler's inner bearing ring, as it should, was not checked.
 - How much the 600 x 500 mm span of 3 mm hardboard sags is an assumption (3 mm
   allowed). So is the advice about smooth sides: it comes from general
   knowledge of hardboard, not from a sheet measured here.

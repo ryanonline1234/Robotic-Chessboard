@@ -16,13 +16,13 @@ done by the software in this repo and sent to the gantry as G-code.
 | Board surface | 400 × 320 mm, printed sheet on 3 mm hardboard ([cad/board-sheet.svg](../cad/board-sheet.svg)) |
 | Magnet travel | 360 × 280 mm between the outermost cell centers ([cad/board-layout.svg](../cad/board-layout.svg)) |
 | Machine size | 624 × 524 mm, 76 mm tall to the playing surface ([cad/assembly.scad](../cad/assembly.scad)) |
-| Pieces | 3D-printed, 19 mm bases (0.475 of a square), 21–32 mm tall, M8 washer in each base ([cad/pieces.scad](../cad/pieces.scad)) |
+| Pieces | 3D-printed, 19 mm bases (0.475 of a square), 21–32 mm tall, M8 washer in each base ([cad/pieces.scad](../cad/pieces.scad)); felt pads optional |
 | Magnet | 12 V holding electromagnet, 20 mm, switched by a MOSFET from GRBL's `M8`/`M9` |
-| Motion | Two NEMA 17 steppers, GT2 belts, 8 mm rods with LM8UU bearings |
+| Motion | Two NEMA 17 steppers (45 N·cm on Y, a 40 N·cm 17HS4401 on X), GT2 belts, 8 mm rods with LM8UU bearings |
 | Controller | Arduino Uno + CNC Shield V3 running GRBL 1.1 |
 | Brain | This repo's planner, on a laptop or Raspberry Pi, over USB |
-| Power | 12 V 5 A supply, 5 A fuse |
-| Parts | [BOM.md](BOM.md) |
+| Power | 12 V 3 A adapter (5 A optional), 5 A fuse |
+| Parts | [BOM.md](BOM.md): $98.36 with tax for the funded build, plus optional add-backs |
 | Numbers behind the design | [CALCULATIONS.md](CALCULATIONS.md) |
 
 Why 19 mm bases: the planner models each piece as a disc. Pieces up to half a
@@ -50,11 +50,14 @@ and pictures and stops if any check fails.
   four printed holders. The X gantry is two end blocks joined by the two X
   rods; each end block rides its Y rod on two LM8UU bearings. The magnet
   carriage rides the X rods on four more.
-- **Drive:** one stepper per axis with a GT2 belt loop. The Y motor sits at
-  the front left and pulls the left end block. The X motor rides on that end
-  block, so it must be no longer than 51 mm. The X idler sits inside the
-  other end block. If the gantry racks because only one side is driven,
-  move the Y belt toward the middle of the gantry.
+- **Drive:** one stepper per axis with a GT2 belt loop. The Y motor (the
+  stronger, 45 N·cm one) sits at the front left and pulls the left end block.
+  The X motor rides on that end block, so it must be no longer than 51 mm. The
+  X idler sits inside the other end block. The idlers are the belt kit's
+  20-tooth idlers with a 5 mm bore on M5 axles; the CAD switches to 3 mm-bore
+  idlers on M3 axles with one setting (`IDLER_BORE=3`,
+  [cad/README.md](../cad/README.md)). If the gantry racks because only one
+  side is driven, move the Y belt toward the middle of the gantry.
 - **Constant gap:** the magnet slides in a sleeve in the carriage on an M3
   guide screw, and a light spring pushes it up against the underside of the
   top. Its face is covered in PTFE tape. Magnetic pull falls off quickly with
@@ -92,8 +95,10 @@ limits, microstep jumpers, diode orientation and the endstop check.
 | MOSFET module OUT+ / OUT− | Electromagnet | 1N5819 across the magnet terminals, stripe (cathode) to OUT+ |
 | Arduino USB | Laptop or Raspberry Pi | Powers the Arduino and carries the G-code |
 
-Power: at most 3.22 A from the 5 A supply, a worst-case bound with both
-motors' coils at the full set current and the magnet on
+Power: about 0.87 A from the 12 V 3 A adapter, estimated from the power the
+motors, drivers and magnet actually use, so a 3.4× margin. The worst-case
+bound, every coil at its full current at once, is 3.22 A, just over 3 A; the
+5 A adapter is an optional add-back. Milestones 2 and 3 measure the real draw
 ([CALCULATIONS.md §11](CALCULATIONS.md#11-power-budget-and-magnet-heat)).
 
 ## Firmware settings (GRBL 1.1)
@@ -113,8 +118,8 @@ Then set these, from [CALCULATIONS.md §12](CALCULATIONS.md#12-recommended-grbl-
 |---|---|---|
 | `$5` | 0 | Limit pins read as triggered when pulled low: suits switches to GND (GRBL's default) |
 | `$100`, `$101` | 80 | Steps per mm: GT2 belt, 20-tooth pulley, 1/16 microstepping |
-| `$110`, `$111` | 6000 | Maximum speed, mm/min |
-| `$120`, `$121` | 400 | Acceleration, mm/s²: 28× below where the king tips, about 3× torque margin |
+| `$110`, `$111` | 6000 | Maximum speed, mm/min. Y is near the end of its motor's flat torque here, so test Y before raising `$111` |
+| `$120`, `$121` | 400 | Acceleration, mm/s²: about 30× below where the king tips, about 3× torque margin |
 | `$11` | 0.010 | Junction deviation (GRBL's default) |
 | `$20` | 1 | Soft limits after homing |
 | `$22` | 1 | Homing on |
@@ -183,10 +188,13 @@ These are the "done when" checks from [ROADMAP.md](../ROADMAP.md):
   the magnet on. The magnet's sideways pull there has to fall to under a
   quarter of its peak, or it drags them along too. Milestone 1 measures it,
   and any fix for weak grip has to be checked against it.
-- **Tipping.** On paper the king tips only above about 11300 mm/s², 28× the
-  acceleration used; Milestone 3 confirms it.
+- **Tipping.** On paper the king tips only above about 11500 mm/s² in the
+  worst case (no felt, washer flush with the base), 29× the acceleration
+  used; Milestone 3 confirms it.
 - **Racking.** Is one Y motor enough, or does the gantry rack? Test it in
   Milestone 2.
-- **Bought-part sizes.** The endstop board's hole positions, the felt's
-  thickness and the washers' outer diameter aren't stated in their listings;
-  measure them before printing the mounts and pieces.
+- **Bought-part sizes.** The endstop board's hole positions, the washers'
+  outer diameter and (if you add them) the felt pads' thickness aren't stated
+  in their listings; measure them before printing the mounts and pieces.
+- **Felt or no felt.** The funded build leaves the felt out. Milestone 1
+  tests the pieces both ways; felt is an inexpensive add-back.
