@@ -7,11 +7,14 @@
  *   node demo.js scramble --seed 42
  *   node demo.js swap --gcode plan.gcode
  *   node demo.js reset --storage 1 --square 40 --gcode reset.gcode   (compact build)
+ *   node demo.js reset --size 0.475 --calibration calibration.json --gcode reset.gcode
+ *     (G-code fitted to the measured board; see calibrate.js)
  */
-import { writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import process from 'node:process';
 
 import { cellAt, createBoard, parseCell, pieceName } from './src/board.js';
+import { checkCalibration } from './src/calibration.js';
 import { toGcode } from './src/gcode.js';
 import { planArrangement } from './src/planner.js';
 import { SCENARIOS, scenario } from './src/scenarios.js';
@@ -22,15 +25,46 @@ const option = (name, fallback) => {
   const i = args.indexOf(name);
   return i >= 0 && i + 1 < args.length ? args[i + 1] : fallback;
 };
+
+// A flag given with no value must not quietly fall back to its default: a
+// trailing --calibration would otherwise write uncalibrated G-code.
+const VALUE_FLAGS = ['--size', '--seed', '--storage', '--square', '--gcode', '--calibration'];
+for (const flag of VALUE_FLAGS) {
+  const i = args.indexOf(flag);
+  if (i >= 0 && (i + 1 >= args.length || args[i + 1].startsWith('--'))) {
+    console.error(`${flag} needs a value${flag === '--calibration' ? ': the calibration.json file' : ''}.`);
+    process.exit(2);
+  }
+}
 const id = args.find((arg, i) => !arg.startsWith('--') && !args[i - 1]?.startsWith('--'));
 
 if (!id) {
-  console.log('Usage: node demo.js <job> [--big | --size 0.6] [--seed N] [--storage 1|2] [--square mm] [--gcode file]\n');
+  console.log('Usage: node demo.js <job> [--big | --size 0.6] [--seed N] [--storage 1|2] [--square mm] [--gcode file] [--calibration calibration.json]\n');
   for (const s of SCENARIOS) console.log(`  ${s.id.padEnd(9)} ${s.title}: ${s.description}`);
   process.exit(0);
 }
 
-const board = createBoard({ storageColumns: Number(option('--storage', 2)) });
+// A calibration fixes the board layout, so it sets the storage columns and
+// square size unless they are given, and they must agree with it if they are.
+const calibrationFile = option('--calibration');
+let calibration;
+if (calibrationFile) {
+  try {
+    calibration = checkCalibration(JSON.parse(readFileSync(calibrationFile, 'utf8')));
+  } catch (err) {
+    console.error(`Could not use ${calibrationFile}: ${err.message}`);
+    process.exit(2);
+  }
+  for (const [flag, key, unit] of [['--storage', 'storageColumns', 'storage column(s)'], ['--square', 'squareMm', 'mm squares']]) {
+    const given = option(flag);
+    if (given !== undefined && calibration[key] !== undefined && Number(given) !== calibration[key]) {
+      console.error(`${flag} ${given} does not match ${calibrationFile}, which was made for ${calibration[key]} ${unit}.`);
+      process.exit(2);
+    }
+  }
+}
+
+const board = createBoard({ storageColumns: Number(option('--storage', calibration?.storageColumns ?? 2)) });
 const pieceDiameter = args.includes('--big') ? 0.8 : Number(option('--size', 0.45));
 const { from, to } = scenario(board, id, Number(option('--seed', 1)));
 
@@ -79,7 +113,10 @@ console.log(check.ok ? 'Checked: no piece ever touches another, and the board ma
 
 const gcodeFile = option('--gcode');
 if (gcodeFile) {
-  writeFileSync(gcodeFile, toGcode(plan.moves, { squareMm: Number(option('--square', 50)) }));
-  console.log(`G-code written to ${gcodeFile}`);
+  const gcodeOptions = calibration
+    ? { calibration, storageColumns: board.storageColumns }
+    : { squareMm: Number(option('--square', 50)) };
+  writeFileSync(gcodeFile, toGcode(plan.moves, gcodeOptions));
+  console.log(`G-code written to ${gcodeFile}${calibration ? ` (fitted to the board with ${calibrationFile})` : ''}`);
 }
 process.exit(check.ok ? 0 : 1);

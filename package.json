@@ -10,7 +10,12 @@
   "scripts": {
     "test": "node --test tests/*.test.js",
     "demo": "node demo.js",
+    "send": "node send.js",
+    "calibrate": "node calibrate.js",
     "sim": "python3 -m http.server 8000"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "optionalDependencies": {
+    "serialport": "^13.0.0"
+  }
 }

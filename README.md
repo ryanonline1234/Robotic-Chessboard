@@ -7,8 +7,9 @@ the computer's moves, reset the board after a game, and set up any position.
 
 The hard part of a board like this is the brain: deciding which piece goes
 where, in what order, and along which route, so nothing collides. That part
-is written and tested. This repo also holds the hardware design, CAD and
-parts list for the first physical build.
+is written and tested. This repo also holds the hardware design, CAD, wiring,
+engineering calculations, machine-control software and parts list for the
+first physical build.
 
 ![Simulator: a full-size pawn steps aside so the knight can get out, then goes back](docs/img/simulator.png)
 
@@ -16,14 +17,18 @@ parts list for the first physical build.
 
 | Part | State |
 |---|---|
-| Planning software: assignment, collision-free routing, blocker handling | ✅ Done, 20 tests |
+| Planning software: assignment, collision-free routing, blocker handling | ✅ Done |
 | Independent plan checker | ✅ Done |
 | G-code output for a GRBL gantry | ✅ Done |
 | Animated simulator and command-line demo | ✅ Done |
-| Hardware design, wiring, firmware settings | ✅ [docs/DESIGN.md](docs/DESIGN.md) |
-| Parts list, about $99 | ✅ [docs/BOM.md](docs/BOM.md) |
-| CAD: printable board sheet, layout drawing, parametric pieces | ✅ [cad/](cad) |
-| Gantry and carriage parts in CAD | Next |
+| G-code sender and board calibration (`send.js`, `calibrate.js`) | ✅ Done, tested against a simulated GRBL |
+| Automated tests | ✅ 70, all passing (`npm test`) |
+| Hardware design, firmware settings | ✅ [docs/DESIGN.md](docs/DESIGN.md) |
+| Engineering calculations | ✅ [docs/CALCULATIONS.md](docs/CALCULATIONS.md) |
+| CAD: board sheet, layout drawing, pieces | ✅ [cad/](cad) |
+| CAD: gantry, carriage and full assembly, printable STLs | ✅ [cad/README.md](cad/README.md) |
+| Wiring schematic | ✅ [docs/img/wiring.svg](docs/img/wiring.svg) |
+| Parts list, every price checked on 2026-10-01 | ⚠️ [docs/BOM.md](docs/BOM.md): $116.38 with tax, $16.38 over the $100 budget |
 | Physical build | Next: [ROADMAP.md](ROADMAP.md) milestones 1–3 |
 
 ## What makes it different
@@ -46,15 +51,21 @@ parts list for the first physical build.
 
 ## Try the software
 
-Needs Node 20 or newer; no dependencies.
+Needs Node 20 or newer. The planner has no dependencies; `send.js` uses the
+optional `serialport` package (`npm install`).
 
 ```bash
 node demo.js                 # list the sample jobs
 node demo.js reset           # put everything back after a game
 node demo.js nf3 --big       # full-size pieces: it moves a blocker and puts it back
 node demo.js reset --storage 1 --square 40 --size 0.475 --gcode reset.gcode   # G-code for the v1 board
+node send.js reset.gcode --dry-run                                            # what would go to GRBL
 npm test
 ```
+
+On the machine, `calibrate.js` fits the G-code to the real board and
+`send.js` streams it to GRBL; [docs/DESIGN.md](docs/DESIGN.md#software) has
+the steps.
 
 To watch it animated, run `npm run sim` and open
 http://localhost:8000/simulator.html.
@@ -110,11 +121,25 @@ storage slots), you get `{ ok: false, error }` instead of a plan.
 | Path | What it is |
 |---|---|
 | `src/` | Planner, routing, checker, G-code, sample jobs |
-| `tests/` | `node --test` suites: sample jobs, random boards, Chess960 setups |
-| `demo.js` | Command-line demo |
+| `src/grbl.js`, `src/send-job.js` | GRBL 1.1 streaming protocol and the send job (errors, alarms, safe stop) |
+| `src/calibration.js` | Fits the board to the machine from jogged positions |
+| `tests/` | `node --test` suites: planner, G-code, calibration, GRBL streaming against a fake GRBL, CLIs, calculations |
+| `demo.js` | Command-line demo; writes G-code |
+| `send.js` | Streams a G-code file to GRBL over USB |
+| `calibrate.js` | Writes `calibration.json` from the a1 and h8 positions |
 | `simulator.html` | Animated top-down simulator |
+| `scripts/calculations.js` | Computes every figure in `docs/CALCULATIONS.md` |
 | `docs/DESIGN.md` | Hardware design, wiring, firmware settings, test plan |
+| `docs/CALCULATIONS.md` | Engineering calculations and what Milestone 1 must measure |
 | `docs/BOM.md` | Parts list and budget |
+| `docs/img/` | Renders, wiring schematic (`wiring.svg`), screenshots |
+| `cad/README.md` | Printed parts, hardware, assembly steps, clearances |
+| `cad/params.scad` | Every shared dimension of the gantry |
+| `cad/gantry-parts.scad` | The printed gantry parts |
+| `cad/assembly.scad` | The whole machine, with fit and reach checks |
+| `cad/export.sh` | Rebuilds the STLs and pictures and runs the checks |
+| `cad/stl/` | Printable gantry parts |
+| `cad/make-wiring.js` | Draws the wiring schematic |
 | `cad/board-sheet.svg` | 1:1 printable playing surface (400 × 320 mm) |
 | `cad/board-layout.svg` | Same, with dimensions and the magnet's travel area |
 | `cad/make-board.js` | Regenerates both drawings for any square size |

@@ -64,6 +64,7 @@ smoothly. Answer it before building anything else.
 - [ ] Wire the magnet through the MOSFET, with the diode across the magnet's terminals and its stripe toward +12 V. Without the diode, switching the coil off can destroy the MOSFET.
 - [ ] 3D-print three test pieces: a pawn, a knight and a king (the tallest). Leave a pocket in each base for a washer, and glue a felt pad on the bottom.
 - [ ] Hold the magnet under the board sample, by hand or on a block, and drag each piece around. Try gaps from 1 to 5 mm and different speeds.
+- [ ] Measure what [docs/CALCULATIONS.md](docs/CALCULATIONS.md#what-milestone-1-should-measure) lists: felt friction, the magnet's downward and sideways pull, whether a passing magnet drags a standing pawn, and how hot the magnet gets.
 
 **Done when:** the king follows the magnet across 20 cm ten times in a row
 without tipping or getting left behind, and stays put when the magnet is off.
@@ -74,13 +75,16 @@ felt.
 
 ## Milestone 2: the gantry moves accurately (2–3 weekends, about $70)
 
-- [ ] Design and print the rod holders, carriages and motor mounts listed in [docs/DESIGN.md](docs/DESIGN.md).
-- [ ] Build the frame: 8 mm rods on a plywood base with LM8UU bearings. The carriage has to reach every cell center: a 360 × 280 mm range for 40 mm squares.
+- [x] Design the rod holders, end blocks, magnet carriage and motor, idler and endstop mounts in CAD, and check that the assembly fits and reaches every cell ([cad/](cad))
+- [ ] Print the 16 gantry parts ([cad/stl/](cad/stl), about 260 g of PLA)
+- [ ] Build the frame: 8 mm rods on a plywood base with LM8UU bearings, following the assembly steps in [cad/README.md](cad/README.md). The carriage has to reach every cell center: a 360 × 280 mm range for 40 mm squares.
 - [ ] Mount two NEMA 17 stepper motors with GT2 belts and 20-tooth pulleys, plus a limit switch on each axis for homing.
 - [ ] Flash GRBL 1.1 onto the Arduino and set it up:
+  - first edit `config.h` so homing runs X and Y only (`HOMING_CYCLE_0`); stock GRBL homes Z first and fails with `ALARM:9` on this board
   - steps per mm, `$100` and `$101`: 80 for GT2 belts on 20-tooth pulleys at 1/16 microstepping, or 40 at 1/8 (check your driver's jumpers)
   - maximum speed, `$110` and `$111`, and acceleration, `$120` and `$121`
-  - homing, `$22=1`
+  - homing, `$22=1`, `$23=0`, `$25=1500`
+  - the full table is in [docs/DESIGN.md](docs/DESIGN.md#firmware-settings-grbl-11)
 - [ ] Drive it by hand from a free G-code sender such as Universal Gcode Sender, CNCjs or LaserGRBL.
 - [ ] Accuracy test: tape paper over the frame, clip a pen to the carriage, and visit all 80 cell centers.
 
@@ -92,8 +96,8 @@ three runs in a row.
 - [ ] Mount the electromagnet on the carriage on a light spring, with PTFE tape on its face, so it presses gently against the underside of the board top.
 - [ ] Connect the MOSFET input to the CNC Shield's coolant pin (`CoolEn`, Arduino pin A3). `M8` then turns the magnet on and `M9` turns it off, which is what `toGcode` writes.
 - [ ] Fix the board top on a frame around the edges, and glue on the printed sheet from [cad/board-sheet.svg](cad/board-sheet.svg) (print at 100% scale).
-- [ ] Calibrate: jog the magnet to the centers of a1 and h8 to find the board's offset in machine coordinates, and pass it to `toGcode` as `offsetX` and `offsetY`.
-- [ ] Set up the pieces the way `node demo.js reset --storage 1` prints its starting board, write the G-code with `node demo.js reset --storage 1 --square 40 --size 0.475 --gcode reset.gcode`, and run it from the sender.
+- [ ] Calibrate: jog the magnet to the centers of a1 and h8 and run `node calibrate.js --a1 X,Y --h8 X,Y --storage 1 --square 40`, which writes `calibration.json`.
+- [ ] Set up the pieces the way `node demo.js reset --storage 1` prints its starting board, write the G-code with `node demo.js reset --storage 1 --size 0.475 --calibration calibration.json --gcode reset.gcode`, and run it with `node send.js reset.gcode --port <port> --home`.
 - [ ] Tune the drag speed (start at 1000 mm/min), the acceleration, and the pause after switching the magnet.
 
 **Done when:** the 22-move reset job runs three times in a row with every
@@ -105,7 +109,7 @@ No sensors yet. You enter every move on a screen, your own included, and the
 robot moves all the pieces. The software always knows where everything is,
 because it made every move itself.
 
-- [ ] Software: `send.js`, which streams G-code to GRBL over USB. It homes with `$H` first, sends one line at a time and waits for `ok`, and stops on `error` or `ALARM`.
+- [x] Software: `send.js`, which streams G-code to GRBL over USB. It homes with `$H` first (`--home`), sends one line at a time and waits for `ok`, and stops on `error` or `ALARM` with the magnet off. Tested against a simulated GRBL; not yet run on hardware.
 - [ ] Software: save the physical position of every piece, storage included, to a file after each finished move, so a crash or restart doesn't lose track.
 - [ ] Software: a game loop using chess.js for the rules and Stockfish for the computer's moves. After each move, plan from the current arrangement to the new position. Captured pieces go to storage automatically.
 - [ ] Software: turn `simulator.html` into a controller. Click a piece and a square to make a move, preview the plan, then send it.
@@ -135,7 +139,9 @@ the board notices when you knock a piece off its square.
 
 ## Parts and budget
 
-The funded v1 build comes to about $99; the itemised list is in
+The v1 build comes to $116.38 with tax and shipping, every price checked on
+2026-10-01. That is $16.38 over the $100 funding tier; the itemised list, and
+the changes that would bring it under $100, are in
 [docs/BOM.md](docs/BOM.md). Milestone 5 adds roughly $20–40 for sensors, shift
 registers and wiring. Quieter TMC2209 drivers and an aluminium extrusion frame
 are good upgrades once v1 works.
@@ -146,6 +152,7 @@ are good upgrades once v1 works.
 |---|---|---|
 | Magnet too weak through the board | Drags stutter in Milestone 1 | Thinner top, bigger washer, stronger magnet, slower drags |
 | Pieces follow the magnet when it's off | Pieces creep during travel moves | No magnets in pieces, or lift the magnet away (Milestone 5) |
+| The magnet drags pieces it passes | A standing piece next to a drag route shifts | Measure it in Milestone 1; route drags farther from standing pieces, or use a magnet whose pull falls off faster |
 | Tall pieces tip over | The king wobbles when a drag starts | Lower acceleration, a heavier or wider base, felt pads |
 | Board top sags | Drags work at the edges but not in the middle | The spring-loaded magnet follows the top; otherwise use a stiffer top |
 | Squares drift out of line | Pieces land off-center on one side | Square up the frame, then redo homing and calibration |

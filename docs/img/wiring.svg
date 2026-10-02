@@ -1,0 +1,259 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1358" viewBox="0 0 1600 1358" font-family="Helvetica, Arial, sans-serif">
+<rect width="1600" height="1358" fill="#ffffff"/>
+<rect class="part" x="60" y="190" width="240" height="110" rx="6" fill="#f7f9fc" stroke="#1f2937" stroke-width="1.6"/>
+<rect class="part" x="480" y="160" width="520" height="600" rx="6" fill="#f7f9fc" stroke="#1f2937" stroke-width="1.6"/>
+<rect class="part" x="480" y="266" width="92" height="84" rx="3" fill="#e9eef5" stroke="#1f2937" stroke-width="1.6"/>
+<rect class="part" x="720" y="196" width="210" height="128" rx="4" fill="#e9eef5" stroke="#1f2937" stroke-width="1.6"/>
+<rect class="part" x="720" y="356" width="210" height="128" rx="4" fill="#e9eef5" stroke="#1f2937" stroke-width="1.6"/>
+<rect class="part" x="496" y="520" width="180" height="222" rx="4" fill="#fff" stroke="#1f2937" stroke-width="1.6" stroke-dasharray="6 4"/>
+<rect class="part" x="700" y="734" width="80" height="26" rx="3" fill="#e9eef5" stroke="#1f2937" stroke-width="1.6"/>
+<rect class="part" x="860" y="734" width="80" height="26" rx="3" fill="#e9eef5" stroke="#1f2937" stroke-width="1.6"/>
+<rect class="part" x="150" y="642" width="250" height="96" rx="6" fill="#f7f9fc" stroke="#1f2937" stroke-width="1.6"/>
+<rect class="part" x="1110" y="190" width="250" height="140" rx="6" fill="#f7f9fc" stroke="#1f2937" stroke-width="1.6"/>
+<rect class="part" x="1110" y="350" width="250" height="140" rx="6" fill="#f7f9fc" stroke="#1f2937" stroke-width="1.6"/>
+<rect class="part" x="1110" y="570" width="230" height="200" rx="6" fill="#f7f9fc" stroke="#1f2937" stroke-width="1.6"/>
+<rect class="part" x="700" y="820" width="130" height="100" rx="6" fill="#f7f9fc" stroke="#1f2937" stroke-width="1.6"/>
+<rect class="part" x="860" y="820" width="130" height="100" rx="6" fill="#f7f9fc" stroke="#1f2937" stroke-width="1.6"/>
+<rect class="part" x="40" y="982" width="1000" height="356" rx="4" fill="#f7f9fc" stroke="#1f2937" stroke-width="1.6"/>
+<rect class="part" x="1070" y="982" width="490" height="356" rx="4" fill="#f7f9fc" stroke="#1f2937" stroke-width="1.6"/>
+<rect class="sym" x="232" y="126" width="16" height="44" fill="none" stroke="#1f2937" stroke-width="1.8"/>
+<path class="sym" d="M 1140 215 L 1140 215 a 5 5 0 0 1 0 10 a 5 5 0 0 1 0 10 a 5 5 0 0 1 0 10 L 1140 245" fill="none" stroke="#1f2937" stroke-width="2"/>
+<path class="sym" d="M 1140 275 L 1140 275 a 5 5 0 0 1 0 10 a 5 5 0 0 1 0 10 a 5 5 0 0 1 0 10 L 1140 305" fill="none" stroke="#1f2937" stroke-width="2"/>
+<line class="sym" x1="1110" y1="215" x2="1140" y2="215" stroke="#1f2937" stroke-width="2"/>
+<line class="sym" x1="1110" y1="245" x2="1140" y2="245" stroke="#1f2937" stroke-width="2"/>
+<line class="sym" x1="1110" y1="275" x2="1140" y2="275" stroke="#1f2937" stroke-width="2"/>
+<line class="sym" x1="1110" y1="305" x2="1140" y2="305" stroke="#1f2937" stroke-width="2"/>
+<path class="sym" d="M 1140 375 L 1140 375 a 5 5 0 0 1 0 10 a 5 5 0 0 1 0 10 a 5 5 0 0 1 0 10 L 1140 405" fill="none" stroke="#1f2937" stroke-width="2"/>
+<path class="sym" d="M 1140 435 L 1140 435 a 5 5 0 0 1 0 10 a 5 5 0 0 1 0 10 a 5 5 0 0 1 0 10 L 1140 465" fill="none" stroke="#1f2937" stroke-width="2"/>
+<line class="sym" x1="1110" y1="375" x2="1140" y2="375" stroke="#1f2937" stroke-width="2"/>
+<line class="sym" x1="1110" y1="405" x2="1140" y2="405" stroke="#1f2937" stroke-width="2"/>
+<line class="sym" x1="1110" y1="435" x2="1140" y2="435" stroke="#1f2937" stroke-width="2"/>
+<line class="sym" x1="1110" y1="465" x2="1140" y2="465" stroke="#1f2937" stroke-width="2"/>
+<path class="sym" d="M 1530 630 L 1530 643 a 8 8 0 0 1 0 16 a 8 8 0 0 1 0 16 a 8 8 0 0 1 0 16 a 8 8 0 0 1 0 16 L 1530 720" fill="none" stroke="#1f2937" stroke-width="2"/>
+<line class="sym" x1="1547" y1="643" x2="1547" y2="707" stroke="#1f2937" stroke-width="1.8"/>
+<line class="sym" x1="1551" y1="643" x2="1551" y2="707" stroke="#1f2937" stroke-width="1.8"/>
+<polygon class="sym" points="1389,684 1411,684 1400,666" fill="#1f2937"/>
+<line class="sym" x1="1388" y1="665" x2="1412" y2="665" stroke="#1f2937" stroke-width="3"/>
+<rect class="sym" x="737" y="853" width="56" height="15" rx="2" fill="#fff" stroke="#1f2937" stroke-width="1.6"/>
+<line class="sym" x1="743" y1="852" x2="797" y2="845" stroke="#1f2937" stroke-width="1.8"/>
+<rect class="sym" x="897" y="853" width="56" height="15" rx="2" fill="#fff" stroke="#1f2937" stroke-width="1.6"/>
+<line class="sym" x1="903" y1="852" x2="957" y2="845" stroke="#1f2937" stroke-width="1.8"/>
+<polyline class="wire" points="240,190 240,110 1580,110 1580,530 1300,530 1300,570" fill="none" stroke="#d7261e" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline class="wire" points="440,110 440,290 480,290" fill="none" stroke="#d7261e" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline class="wire" points="100,300 100,330 480,330" fill="none" stroke="#1b1b1b" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline class="wire" points="100,330 100,940 1180,940 1180,770" fill="none" stroke="#1b1b1b" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline class="wire" points="400,690 480,690" fill="none" stroke="#8a93a3" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline class="wire" points="1000,215 1110,215" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline class="wire" points="1000,245 1110,245" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline class="wire" points="1000,275 1110,275" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline class="wire" points="1000,305 1110,305" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline class="wire" points="1000,375 1110,375" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline class="wire" points="1000,405 1110,405" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline class="wire" points="1000,435 1110,435" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline class="wire" points="1000,465 1110,465" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline class="wire" points="1000,630 1110,630" fill="none" stroke="#db2777" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline class="wire" points="1000,670 1110,670" fill="none" stroke="#1b1b1b" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline class="wire" points="1340,630 1530,630" fill="none" stroke="#7c3aed" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline class="wire" points="1340,720 1530,720" fill="none" stroke="#7c3aed" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline class="wire" points="1400,630 1400,720" fill="none" stroke="#7c3aed" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline class="wire" points="720,760 720,820" fill="none" stroke="#ea7a00" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline class="wire" points="760,760 760,820" fill="none" stroke="#1b1b1b" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline class="wire" points="880,760 880,820" fill="none" stroke="#0e9aa7" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline class="wire" points="920,760 920,820" fill="none" stroke="#1b1b1b" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline class="wire" points="1086,1030 1116,1030" fill="none" stroke="#d7261e" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline class="wire" points="1086,1056 1116,1056" fill="none" stroke="#1b1b1b" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline class="wire" points="1086,1082 1116,1082" fill="none" stroke="#2563eb" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline class="wire" points="1086,1108 1116,1108" fill="none" stroke="#16a34a" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline class="wire" points="1086,1134 1116,1134" fill="none" stroke="#7c3aed" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline class="wire" points="1086,1160 1116,1160" fill="none" stroke="#db2777" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline class="wire" points="1086,1186 1116,1186" fill="none" stroke="#ea7a00" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline class="wire" points="1086,1212 1116,1212" fill="none" stroke="#0e9aa7" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline class="wire" points="1086,1238 1116,1238" fill="none" stroke="#8a93a3" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="240" cy="190" r="3.6" fill="#fff" stroke="#1f2937" stroke-width="1.5"/>
+<circle cx="100" cy="300" r="3.6" fill="#fff" stroke="#1f2937" stroke-width="1.5"/>
+<circle cx="440" cy="110" r="5.5" fill="#d7261e"/>
+<circle cx="100" cy="330" r="5.5" fill="#1b1b1b"/>
+<circle cx="480" cy="290" r="3.6" fill="#fff" stroke="#1f2937" stroke-width="1.5"/>
+<circle cx="480" cy="330" r="3.6" fill="#fff" stroke="#1f2937" stroke-width="1.5"/>
+<circle cx="1000" cy="215" r="3.6" fill="#fff" stroke="#1f2937" stroke-width="1.5"/>
+<circle cx="1000" cy="245" r="3.6" fill="#fff" stroke="#1f2937" stroke-width="1.5"/>
+<circle cx="1000" cy="275" r="3.6" fill="#fff" stroke="#1f2937" stroke-width="1.5"/>
+<circle cx="1000" cy="305" r="3.6" fill="#fff" stroke="#1f2937" stroke-width="1.5"/>
+<circle cx="1000" cy="375" r="3.6" fill="#fff" stroke="#1f2937" stroke-width="1.5"/>
+<circle cx="1000" cy="405" r="3.6" fill="#fff" stroke="#1f2937" stroke-width="1.5"/>
+<circle cx="1000" cy="435" r="3.6" fill="#fff" stroke="#1f2937" stroke-width="1.5"/>
+<circle cx="1000" cy="465" r="3.6" fill="#fff" stroke="#1f2937" stroke-width="1.5"/>
+<circle cx="480" cy="690" r="3.6" fill="#fff" stroke="#1f2937" stroke-width="1.5"/>
+<circle cx="720" cy="760" r="3.6" fill="#fff" stroke="#1f2937" stroke-width="1.5"/>
+<circle cx="760" cy="760" r="3.6" fill="#fff" stroke="#1f2937" stroke-width="1.5"/>
+<circle cx="880" cy="760" r="3.6" fill="#fff" stroke="#1f2937" stroke-width="1.5"/>
+<circle cx="920" cy="760" r="3.6" fill="#fff" stroke="#1f2937" stroke-width="1.5"/>
+<circle cx="1000" cy="630" r="3.6" fill="#fff" stroke="#1f2937" stroke-width="1.5"/>
+<circle cx="1000" cy="670" r="3.6" fill="#fff" stroke="#1f2937" stroke-width="1.5"/>
+<circle cx="400" cy="690" r="3.6" fill="#fff" stroke="#1f2937" stroke-width="1.5"/>
+<circle cx="1110" cy="215" r="3.6" fill="#fff" stroke="#1f2937" stroke-width="1.5"/>
+<circle cx="1110" cy="245" r="3.6" fill="#fff" stroke="#1f2937" stroke-width="1.5"/>
+<circle cx="1110" cy="275" r="3.6" fill="#fff" stroke="#1f2937" stroke-width="1.5"/>
+<circle cx="1110" cy="305" r="3.6" fill="#fff" stroke="#1f2937" stroke-width="1.5"/>
+<circle cx="1110" cy="375" r="3.6" fill="#fff" stroke="#1f2937" stroke-width="1.5"/>
+<circle cx="1110" cy="405" r="3.6" fill="#fff" stroke="#1f2937" stroke-width="1.5"/>
+<circle cx="1110" cy="435" r="3.6" fill="#fff" stroke="#1f2937" stroke-width="1.5"/>
+<circle cx="1110" cy="465" r="3.6" fill="#fff" stroke="#1f2937" stroke-width="1.5"/>
+<circle cx="1110" cy="630" r="3.6" fill="#fff" stroke="#1f2937" stroke-width="1.5"/>
+<circle cx="1110" cy="670" r="3.6" fill="#fff" stroke="#1f2937" stroke-width="1.5"/>
+<circle cx="1300" cy="570" r="3.6" fill="#fff" stroke="#1f2937" stroke-width="1.5"/>
+<circle cx="1180" cy="770" r="3.6" fill="#fff" stroke="#1f2937" stroke-width="1.5"/>
+<circle cx="1340" cy="630" r="3.6" fill="#fff" stroke="#1f2937" stroke-width="1.5"/>
+<circle cx="1340" cy="720" r="3.6" fill="#fff" stroke="#1f2937" stroke-width="1.5"/>
+<circle cx="1400" cy="630" r="5.5" fill="#7c3aed"/>
+<circle cx="1400" cy="720" r="5.5" fill="#7c3aed"/>
+<circle cx="720" cy="820" r="3.6" fill="#fff" stroke="#1f2937" stroke-width="1.5"/>
+<circle cx="760" cy="820" r="3.6" fill="#fff" stroke="#1f2937" stroke-width="1.5"/>
+<circle cx="800" cy="820" r="3.6" fill="#fff" stroke="#1f2937" stroke-width="1.5"/>
+<circle cx="880" cy="820" r="3.6" fill="#fff" stroke="#1f2937" stroke-width="1.5"/>
+<circle cx="920" cy="820" r="3.6" fill="#fff" stroke="#1f2937" stroke-width="1.5"/>
+<circle cx="960" cy="820" r="3.6" fill="#fff" stroke="#1f2937" stroke-width="1.5"/>
+<text x="40" y="42" font-size="24" font-weight="700" text-anchor="start" fill="#1f2937">Robotic Chessboard v1: wiring schematic</text>
+<text x="40" y="66" font-size="13" font-weight="400" text-anchor="start" fill="#5b6472">Arduino Uno + CNC Shield V3 running GRBL 1.1, two NEMA 17 steppers, a 12 V electromagnet. 12 V DC only. Drawn by cad/make-wiring.js.</text>
+<text x="180" y="232" font-size="14" font-weight="700" text-anchor="middle" fill="#1f2937">12 V 5 A power supply</text>
+<text x="180" y="250" font-size="12" font-weight="400" text-anchor="middle" fill="#5b6472">enclosed adapter, DC output</text>
+<text x="180" y="269" font-size="12" font-weight="400" text-anchor="middle" fill="#5b6472">plug cut off? find +V with a meter</text>
+<text x="240" y="208" font-size="12" font-weight="700" text-anchor="middle" fill="#1f2937">+V</text>
+<text x="100" y="292" font-size="12" font-weight="700" text-anchor="middle" fill="#1f2937">−V</text>
+<text x="258" y="144" font-size="13" font-weight="700" text-anchor="start" fill="#1f2937">F1</text>
+<text x="258" y="160" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">5 A inline fuse</text>
+<text x="760" y="102" font-size="12" font-weight="700" text-anchor="middle" fill="#d7261e">+12 V (after the fuse)</text>
+<text x="1440" y="522" font-size="12" font-weight="700" text-anchor="middle" fill="#d7261e">+12 V</text>
+<text x="380" y="322" font-size="12" font-weight="700" text-anchor="middle" fill="#1b1b1b">GND</text>
+<text x="640" y="960" font-size="12" font-weight="700" text-anchor="middle" fill="#1b1b1b">GND</text>
+<text x="500" y="190" font-size="18" font-weight="700" text-anchor="start" fill="#1f2937">CNC Shield V3</text>
+<text x="500" y="209" font-size="12" font-weight="400" text-anchor="start" fill="#5b6472">plugged onto the Arduino Uno</text>
+<text x="488" y="259" font-size="12" font-weight="700" text-anchor="start" fill="#5b6472">POWER IN (screw terminal)</text>
+<text x="492" y="295" font-size="13" font-weight="700" text-anchor="start" fill="#1f2937">+  12 V</text>
+<text x="492" y="335" font-size="13" font-weight="700" text-anchor="start" fill="#1f2937">−  GND</text>
+<text x="825" y="220" font-size="13" font-weight="700" text-anchor="middle" fill="#1f2937">X driver socket</text>
+<text x="825" y="238" font-size="12" font-weight="400" text-anchor="middle" fill="#1f2937">A4988 driver</text>
+<text x="825" y="266" font-size="12" font-weight="400" text-anchor="middle" fill="#1f2937">jumpers M0, M1, M2: all in</text>
+<text x="825" y="282" font-size="12" font-weight="400" text-anchor="middle" fill="#1f2937">= 1/16 microstepping</text>
+<text x="825" y="308" font-size="12" font-weight="400" text-anchor="middle" fill="#5b6472">set Vref before use</text>
+<text x="992" y="202" font-size="12" font-weight="700" text-anchor="end" fill="#5b6472">X motor</text>
+<text x="990" y="219" font-size="12" font-weight="700" text-anchor="end" fill="#1f2937">2B</text>
+<text x="990" y="249" font-size="12" font-weight="700" text-anchor="end" fill="#1f2937">2A</text>
+<text x="990" y="279" font-size="12" font-weight="700" text-anchor="end" fill="#1f2937">1A</text>
+<text x="990" y="309" font-size="12" font-weight="700" text-anchor="end" fill="#1f2937">1B</text>
+<text x="825" y="380" font-size="13" font-weight="700" text-anchor="middle" fill="#1f2937">Y driver socket</text>
+<text x="825" y="398" font-size="12" font-weight="400" text-anchor="middle" fill="#1f2937">A4988 driver</text>
+<text x="825" y="426" font-size="12" font-weight="400" text-anchor="middle" fill="#1f2937">jumpers M0, M1, M2: all in</text>
+<text x="825" y="442" font-size="12" font-weight="400" text-anchor="middle" fill="#1f2937">= 1/16 microstepping</text>
+<text x="825" y="468" font-size="12" font-weight="400" text-anchor="middle" fill="#5b6472">set Vref before use</text>
+<text x="992" y="362" font-size="12" font-weight="700" text-anchor="end" fill="#5b6472">Y motor</text>
+<text x="990" y="379" font-size="12" font-weight="700" text-anchor="end" fill="#1f2937">2B</text>
+<text x="990" y="409" font-size="12" font-weight="700" text-anchor="end" fill="#1f2937">2A</text>
+<text x="990" y="439" font-size="12" font-weight="700" text-anchor="end" fill="#1f2937">1A</text>
+<text x="990" y="469" font-size="12" font-weight="700" text-anchor="end" fill="#1f2937">1B</text>
+<text x="825" y="512" font-size="12" font-weight="400" text-anchor="middle" fill="#5b6472">Z and A sockets: empty</text>
+<text x="508" y="544" font-size="13" font-weight="700" text-anchor="start" fill="#1f2937">Arduino Uno R3</text>
+<text x="508" y="560" font-size="12" font-weight="400" text-anchor="start" fill="#5b6472">under the shield</text>
+<text x="508" y="586" font-size="12" font-weight="700" text-anchor="start" fill="#1f2937">GRBL 1.1 pins used:</text>
+<text x="508" y="604" font-size="12" font-weight="700" text-anchor="start" fill="#1f2937">D9</text>
+<text x="542" y="604" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">X limit (X−)</text>
+<text x="508" y="620" font-size="12" font-weight="700" text-anchor="start" fill="#1f2937">D10</text>
+<text x="542" y="620" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">Y limit (Y−)</text>
+<text x="508" y="636" font-size="12" font-weight="700" text-anchor="start" fill="#1f2937">A3</text>
+<text x="542" y="636" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">CoolEn (magnet)</text>
+<text x="508" y="694" font-size="12" font-weight="700" text-anchor="start" fill="#1f2937">USB-B</text>
+<text x="820" y="682" font-size="12" font-weight="700" text-anchor="middle" fill="#5b6472">END STOP HEADER</text>
+<text x="820" y="699" font-size="12" font-weight="400" text-anchor="middle" fill="#5b6472">each switch on one row: the signal</text>
+<text x="820" y="714" font-size="12" font-weight="400" text-anchor="middle" fill="#5b6472">pin and the pin beside it. Never X− to X+.</text>
+<text x="720" y="751" font-size="12" font-weight="700" text-anchor="middle" fill="#1f2937">X−</text>
+<text x="760" y="751" font-size="12" font-weight="700" text-anchor="middle" fill="#1f2937">GND</text>
+<text x="880" y="751" font-size="12" font-weight="700" text-anchor="middle" fill="#1f2937">Y−</text>
+<text x="920" y="751" font-size="12" font-weight="700" text-anchor="middle" fill="#1f2937">GND</text>
+<text x="992" y="608" font-size="12" font-weight="700" text-anchor="end" fill="#5b6472">CoolEn row (same strip as the end stops)</text>
+<text x="990" y="634" font-size="12" font-weight="700" text-anchor="end" fill="#1f2937">CoolEn (A3)</text>
+<text x="990" y="674" font-size="12" font-weight="700" text-anchor="end" fill="#1f2937">GND</text>
+<text x="275" y="670" font-size="14" font-weight="700" text-anchor="middle" fill="#1f2937">Laptop or Raspberry Pi</text>
+<text x="275" y="688" font-size="12" font-weight="400" text-anchor="middle" fill="#1f2937">runs the planner and</text>
+<text x="275" y="704" font-size="12" font-weight="400" text-anchor="middle" fill="#1f2937">streams G-code to GRBL</text>
+<text x="275" y="726" font-size="12" font-weight="400" text-anchor="middle" fill="#5b6472">USB also powers the Uno</text>
+<text x="440" y="681" font-size="12" font-weight="700" text-anchor="middle" fill="#8a93a3">USB</text>
+<text x="1158" y="234" font-size="12" font-weight="700" text-anchor="start" fill="#2563eb">coil B</text>
+<text x="1158" y="294" font-size="12" font-weight="700" text-anchor="start" fill="#16a34a">coil A</text>
+<text x="1290" y="250" font-size="15" font-weight="700" text-anchor="middle" fill="#1f2937">X motor</text>
+<text x="1290" y="268" font-size="12" font-weight="400" text-anchor="middle" fill="#1f2937">NEMA 17 stepper</text>
+<text x="1290" y="284" font-size="12" font-weight="400" text-anchor="middle" fill="#5b6472">4 wires, 2 coils</text>
+<text x="1158" y="394" font-size="12" font-weight="700" text-anchor="start" fill="#2563eb">coil B</text>
+<text x="1158" y="454" font-size="12" font-weight="700" text-anchor="start" fill="#16a34a">coil A</text>
+<text x="1290" y="410" font-size="15" font-weight="700" text-anchor="middle" fill="#1f2937">Y motor</text>
+<text x="1290" y="428" font-size="12" font-weight="400" text-anchor="middle" fill="#1f2937">NEMA 17 stepper</text>
+<text x="1290" y="444" font-size="12" font-weight="400" text-anchor="middle" fill="#5b6472">4 wires, 2 coils</text>
+<text x="1225" y="692" font-size="14" font-weight="700" text-anchor="middle" fill="#1f2937">MOSFET module</text>
+<text x="1225" y="709" font-size="12" font-weight="400" text-anchor="middle" fill="#5b6472">AOD4184 type</text>
+<text x="1118" y="634" font-size="12" font-weight="700" text-anchor="start" fill="#1f2937">TRIG/PWM</text>
+<text x="1118" y="674" font-size="12" font-weight="700" text-anchor="start" fill="#1f2937">GND</text>
+<text x="1300" y="588" font-size="12" font-weight="700" text-anchor="middle" fill="#1f2937">VIN+</text>
+<text x="1180" y="761" font-size="12" font-weight="700" text-anchor="middle" fill="#1f2937">VIN−</text>
+<text x="1332" y="634" font-size="12" font-weight="700" text-anchor="end" fill="#1f2937">OUT+</text>
+<text x="1332" y="724" font-size="12" font-weight="700" text-anchor="end" fill="#1f2937">OUT−</text>
+<text x="1055" y="622" font-size="12" font-weight="700" text-anchor="middle" fill="#db2777">CoolEn</text>
+<text x="1055" y="662" font-size="12" font-weight="700" text-anchor="middle" fill="#1b1b1b">GND</text>
+<text x="1418" y="661" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">D1 1N5819</text>
+<text x="1418" y="676" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">stripe (cathode)</text>
+<text x="1418" y="691" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">toward OUT+</text>
+<text x="1465" y="622" font-size="12" font-weight="700" text-anchor="middle" fill="#7c3aed">MAG+</text>
+<text x="1465" y="739" font-size="12" font-weight="700" text-anchor="middle" fill="#7c3aed">MAG−</text>
+<text x="1465" y="770" font-size="14" font-weight="700" text-anchor="middle" fill="#1f2937">Electromagnet</text>
+<text x="1465" y="787" font-size="12" font-weight="400" text-anchor="middle" fill="#1f2937">12 V, about 0.25 A, P20/15</text>
+<text x="720" y="839" font-size="12" font-weight="700" text-anchor="middle" fill="#1f2937">S</text>
+<text x="760" y="839" font-size="13" font-weight="700" text-anchor="middle" fill="#1f2937">−</text>
+<text x="800" y="839" font-size="13" font-weight="700" text-anchor="middle" fill="#1f2937">+</text>
+<text x="765" y="888" font-size="13" font-weight="700" text-anchor="middle" fill="#1f2937">X endstop board</text>
+<text x="765" y="906" font-size="12" font-weight="400" text-anchor="middle" fill="#5b6472">+ not connected</text>
+<text x="713" y="794" font-size="12" font-weight="700" text-anchor="end" fill="#ea7a00">X_LIM</text>
+<text x="880" y="839" font-size="12" font-weight="700" text-anchor="middle" fill="#1f2937">S</text>
+<text x="920" y="839" font-size="13" font-weight="700" text-anchor="middle" fill="#1f2937">−</text>
+<text x="960" y="839" font-size="13" font-weight="700" text-anchor="middle" fill="#1f2937">+</text>
+<text x="925" y="888" font-size="13" font-weight="700" text-anchor="middle" fill="#1f2937">Y endstop board</text>
+<text x="925" y="906" font-size="12" font-weight="400" text-anchor="middle" fill="#5b6472">+ not connected</text>
+<text x="873" y="794" font-size="12" font-weight="700" text-anchor="end" fill="#0e9aa7">Y_LIM</text>
+<text x="56" y="1006" font-size="14" font-weight="700" text-anchor="start" fill="#1f2937">Notes</text>
+<text x="56" y="1028" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">1.</text>
+<text x="76" y="1028" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">12 V DC only: the supply is an enclosed adapter, so there is no mains wiring. F1 goes on the +12 V lead, before anything else.</text>
+<text x="56" y="1045" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">2.</text>
+<text x="76" y="1045" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">If you cut off the barrel plug, find +12 V with a meter before connecting anything. The shield has no reverse-polarity protection:</text>
+<text x="76" y="1062" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">reversed 12 V destroys the drivers and shorts the supply through the MOSFET module and D1.</text>
+<text x="56" y="1079" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">3.</text>
+<text x="76" y="1079" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">Set each A4988 current limit before plugging in its motor: Vref = 8 × Rsense × current (Rsense is printed on the driver, R100 = 0.1 Ω).</text>
+<text x="56" y="1096" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">4.</text>
+<text x="76" y="1096" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">Microstep jumpers M0, M1 and M2 all in under the X and Y drivers = 1/16 step, which is what GRBL $100 = $101 = 80 assumes.</text>
+<text x="56" y="1113" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">5.</text>
+<text x="76" y="1113" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">D1 stripe (cathode) to OUT+, plain end (anode) to OUT−. Backwards, it shorts the 12 V through the MOSFET when the magnet turns on.</text>
+<text x="56" y="1130" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">6.</text>
+<text x="76" y="1130" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">Endstop boards: S to X− (or Y−), − to the pin beside it, + not connected. Pin order varies by maker, so go by the printed labels.</text>
+<text x="76" y="1147" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">A 3-pin plug will not fit one row of the strip: move the S and − leads into single-pin housings.</text>
+<text x="76" y="1164" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">A bare micro switch works too: C to the pin beside X−, NO to X−, NC not connected.</text>
+<text x="56" y="1181" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">7.</text>
+<text x="76" y="1181" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">Before homing, connect GRBL over USB and send ?. The reply must show Pn:X only while the X switch is held (the same for Y).</text>
+<text x="76" y="1198" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">If Pn:X shows with the switch released, set $5 = 1. If it never shows, check the wiring and the next note.</text>
+<text x="56" y="1215" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">8.</text>
+<text x="76" y="1215" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">The pin beside each end stop must be GND. If your shield has an END STOP jumper (Protoneer V3.02 and later), set it so that,</text>
+<text x="76" y="1232" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">with everything unplugged, a meter on continuity beeps between the pin beside X− and the − power terminal.</text>
+<text x="56" y="1249" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">9.</text>
+<text x="76" y="1249" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">Build GRBL to home X and Y only: in config.h set HOMING_CYCLE_0 to ((1&lt;&lt;X_AXIS)|(1&lt;&lt;Y_AXIS)) and comment out HOMING_CYCLE_1.</text>
+<text x="76" y="1266" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">Stock GRBL 1.1 homes Z first and stops with ALARM 9 when there is no Z switch.</text>
+<text x="76" y="1283" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">GRBL homes toward + by default ($23 = 0). If the switches sit at the a1 corner (the low end of X and Y), set $23 = 3.</text>
+<text x="56" y="1300" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">10.</text>
+<text x="76" y="1300" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">Never plug or unplug a motor while the 12 V is on. Motor wire colours vary: find each coil pair with a meter (low ohms between them).</text>
+<text x="56" y="1317" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">11.</text>
+<text x="76" y="1317" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">If an axis runs backwards, swap the two wires of one coil, or invert that axis with GRBL $3.</text>
+<text x="1086" y="1006" font-size="14" font-weight="700" text-anchor="start" fill="#1f2937">Wire colours</text>
+<text x="1126" y="1034" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">+12 V, after the fuse</text>
+<text x="1126" y="1060" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">GND (all one net)</text>
+<text x="1126" y="1086" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">motor coil B (2B, 2A)</text>
+<text x="1126" y="1112" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">motor coil A (1A, 1B)</text>
+<text x="1126" y="1138" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">magnet leads (OUT+, OUT−)</text>
+<text x="1126" y="1164" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">CoolEn (A3) to TRIG/PWM</text>
+<text x="1126" y="1190" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">X endstop signal (D9)</text>
+<text x="1126" y="1216" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">Y endstop signal (D10)</text>
+<text x="1126" y="1242" font-size="12" font-weight="400" text-anchor="start" fill="#1f2937">USB</text>
+</svg>
